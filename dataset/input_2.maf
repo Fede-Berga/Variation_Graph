@@ -1,0 +1,9 @@
+##maf version=1 scoring=tba.v8 
+# tba.v8 (((human chimp) baboon) (mouse rat)) 
+
+a score=23262.0
+s hg16.chr7    27707221 13 + 158545518 gcagctgaaaaca 
+s panTro1.chr6 28869787 13 + 161576975 gcagctgaaaaca
+i panTro1.chr6 N 0 C 0
+s baboon         249182 13 +   4622798 gcagctgaaaaca
+i baboon       I 234 n 19
