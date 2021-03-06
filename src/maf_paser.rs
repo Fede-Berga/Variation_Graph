@@ -3,42 +3,52 @@ use std::io;
 use multiple_alignment_format::MAFItem;
 use multiple_alignment_format::MAFBlock;
 use multiple_alignment_format::parser::next_maf_item;
-use multiple_alignment_format::MAFBlockEntry;
-use std::process;
 use std::fmt;
 
-#[derive(Debug)]
-pub struct Alignment(pub Vec<Vec<u8>>);
+#[derive(Debug, PartialEq, Eq)]
+pub struct Alignment(pub Vec<Sequence>);
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct Sequence {
+    pub nome : String,
+    pub seq : Vec<u8>,
+}
 
 impl fmt::Display for Alignment {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "[")?;
         for seq in self.0.iter() {
-            let as_char : Vec<char> = seq.iter().map(|byte| *byte as char).collect();
-            writeln!(f, "{:?}", as_char)?;
+            writeln!(f, "{}", seq)?;
+        }
+        write!(f, "]")
+    }
+}
+
+impl fmt::Display for Sequence {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} : [", self.nome)?;
+        for ch in self.seq.iter() {
+            write!(f, "{}", *ch as char)?;
+            if ch != self.seq.iter().last().unwrap() {
+                write!(f, ", ")?;
+            }
         }
         write!(f, "]")
     }
 }
 
 impl Alignment {
-    pub fn new(file_name : &str) -> Alignment {
+    pub fn new(file_name : &str) -> Result<Alignment, &'static str> {
         let contents = match Alignment::get_file_content(file_name) {
-            Err(error) => {
-                println!("{:?}", error);
-                process::exit(1);
-            }
+            Err(_) => return Err("Errore nella lettura del file"),
             Ok(result) => result,
         };
     
         let alignment_block = match Alignment::get_block(contents) {
-            Err(error) => {
-                println!("{:?}", error);
-                process::exit(1);
-            }
+            Err(error) => return Err(error),
             Ok(result) => result,
         };
-        Alignment::get_alignments(alignment_block)
+        Ok(Alignment::get_alignments(alignment_block))
     }
 
     fn get_file_content(file_name : & str) -> io::Result<String> {
@@ -59,15 +69,14 @@ impl Alignment {
     }
     
     fn get_alignments(block : MAFBlock) -> Alignment{
-        let mut alignment = Vec::new();
-    
-        for entry in block.entries {
-            match entry {
-                MAFBlockEntry::AlignedEntry(aligned_entry) => alignment.push(aligned_entry.alignment),
-                _ => {}
-            }
-        }
-    
+        let alignment = block.aligned_entries()
+            .map(|aligned_entry| {
+                Sequence {
+                    nome : aligned_entry.seq.clone(),
+                    seq : aligned_entry.alignment.clone(),
+                }
+            })
+            .collect();
         Alignment(alignment)
     }
 }
