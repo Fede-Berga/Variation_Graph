@@ -7,5 +7,5 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-handlegraph = {git = "https://github.com/chfi/rs-handlegraph"}
+#handlegraph = {git = "https://github.com/chfi/rs-handlegraph"}
 multiple_alignment_format = {git = "https://github.com/Fede-Berga/maf_parser.git", branch = "main"}
