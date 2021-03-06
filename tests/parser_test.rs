@@ -13,7 +13,7 @@ fn parse_file_non_presente() {
 #[test]
 fn parse_emply_file() {
     let al = Alignment::new("./dataset/empty.maf");
-    let expected : Result<Alignment, &str> = Err("Errore nella lettura del file");
+    let expected : Result<Alignment, &str> = Err("Blocco di allineamento non trovato");
     assert_eq!(al, expected);
 }
 
@@ -26,7 +26,7 @@ fn parse_file_no_alignment_block() {
 
 #[test]
 fn parse_file_one_alignment_block() {
-    let al = Alignment::new("./dataset/input.maf").unwrap();
+    let al = Alignment::new("./dataset/one_al_block.maf").unwrap();
     let expected : Vec<Sequence> = 
     vec![
         Sequence {
@@ -55,7 +55,7 @@ fn parse_file_one_alignment_block() {
 
 #[test]
 fn parse_file_one_alignment_block_with_info_line() {
-    let al = Alignment::new("./dataset/input_2.maf").unwrap();
+    let al = Alignment::new("./dataset/one_al_block_with_info.maf").unwrap();
     let expected : Vec<Sequence> = 
     vec![
         Sequence {
