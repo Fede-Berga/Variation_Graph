@@ -5,12 +5,17 @@ use multiple_alignment_format::MAFBlock;
 use multiple_alignment_format::parser::next_maf_item;
 use std::fmt;
 
+/// Rappresenta un blocco di allineamento 
+/// in un file .maf
 #[derive(Debug, PartialEq, Eq)]
 pub struct Alignment(pub Vec<Sequence>);
 
+/// Rappresenta una sequenza di allineamento.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Sequence {
+    /// Nome della sequenza
     pub nome : String,
+    /// Sequenza allineata
     pub seq : Vec<u8>,
 }
 
@@ -38,6 +43,11 @@ impl fmt::Display for Sequence {
 }
 
 impl Alignment {
+    /// Restituisce un Alignment contenuto nel file 'file_name'
+    /// 
+    /// # Arguments
+    /// 
+    /// * 'file_name' - Nome del file da cui prelevare l'allineamento
     pub fn new(file_name : &str) -> Result<Alignment, &'static str> {
         let contents = match Alignment::get_file_content(file_name) {
             Err(_) => return Err("Errore nella lettura del file"),
@@ -51,10 +61,21 @@ impl Alignment {
         Ok(Alignment::get_alignments(alignment_block))
     }
 
+    /// Restituisce il contenuto del file 'file_name'
+    /// 
+    /// # Arguments
+    /// 
+    /// * 'file_name' - Nome del file da cui prelevare il contenuto
     fn get_file_content(file_name : & str) -> io::Result<String> {
         fs::read_to_string(file_name)
     }
     
+    /// Restituisce il primo blocco di allineamento nel file .maf.
+    /// Restituisce un errore nel caso non venga trovato nessun blocco.
+    /// 
+    /// # Arguments
+    /// 
+    /// * 'maf_contents' - Contenuto del file .maf
     fn get_block(maf_contents : String) -> Result<MAFBlock, &'static str> {
         for line in maf_contents.lines() {
             let i = maf_contents.find(line).unwrap();
@@ -68,6 +89,12 @@ impl Alignment {
         Err("Blocco di allineamento non trovato")
     }
     
+    /// Restituisce un Alignment contentente i nomi delle sequenze e la relativa
+    /// sequenza allineata.
+    /// 
+    ///  # Arguments
+    /// 
+    /// * 'block' - Blocco contenente l'allineamento
     fn get_alignments(block : MAFBlock) -> Alignment{
         let alignment = block.aligned_entries()
             .map(|aligned_entry| {
