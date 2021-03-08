@@ -37,9 +37,7 @@ pub fn build_vg_from_seq_alignment(alignment : &Alignment) -> () {
         
         println!("{:?}", current_index);
 
-        /*for nucleotide in NUCLOTIDES {
-            
-        }*/
+        //Build Graph
     }
 }
 
