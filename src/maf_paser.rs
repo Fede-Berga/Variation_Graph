@@ -46,7 +46,7 @@ impl Alignment {
     /// 
     /// # Arguments
     /// 
-    /// * 'file_name' - File from which the alignment block is fetched
+    /// * `file_name` - File from which the alignment block is fetched
     pub fn new(file_name : &str) -> Result<Alignment, &'static str> {
         let contents = match Alignment::get_file_content(file_name) {
             Err(_) => return Err("Error in file reading"),
