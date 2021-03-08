@@ -1,3 +1,3 @@
-# Progetto per la costruzione di un Variation Graph partendo da un allineamento multiplo
+# Project for constructing a variation graph given a multiple alignment in MAF format
 
-Progetto non ancora completato.
+Project not yet finished
