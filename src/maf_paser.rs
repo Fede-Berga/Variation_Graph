@@ -5,7 +5,7 @@ use multiple_alignment_format::MAFBlock;
 use multiple_alignment_format::parser::next_maf_item;
 use std::fmt;
 
-/// Represents al alignment block in a MAF file 
+/// Represents a multiple sequence alignment 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Alignment(pub Vec<Sequence>);
 
@@ -42,7 +42,7 @@ impl fmt::Display for Sequence {
 }
 
 impl Alignment {
-    /// Return the first alignment contained in 'file_name'
+    /// Returns the first mutiple alignment contained in 'file_name'
     /// 
     /// # Arguments
     /// 
@@ -64,7 +64,7 @@ impl Alignment {
     /// 
     /// # Arguments
     /// 
-    /// * 'file_name' - File from which the cntent is fetched
+    /// * 'file_name' - File from which the content is fetched
     fn get_file_content(file_name : & str) -> io::Result<String> {
         fs::read_to_string(file_name)
     }
@@ -88,7 +88,7 @@ impl Alignment {
         Err("Alignment block not found")
     }
     
-    /// Returns an Alignment containing, for each sequence, 
+    /// Returns an [Alignment] containing, for each sequence, 
     /// the name and the relative aligned sequence
     /// 
     ///  # Arguments
