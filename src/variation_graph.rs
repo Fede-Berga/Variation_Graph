@@ -19,8 +19,6 @@ const INDEL : u8 = '-' as u8;
 pub fn build_vg_from_seq_alignment(alignment : &Alignment) -> () {
     let mut current_index : Vec<usize> = vec![0; alignment.0.len()];
     let (mut vg, path) = initialize_graph(&alignment);
-    
-    //println!("Sequence length : {}", alignment.0[0].seq.len());
 
     while current_index.iter().enumerate().any(|(i, &current)| current < alignment.0[i].seq.len()) {
         current_index = set_current_index(&alignment, current_index);
