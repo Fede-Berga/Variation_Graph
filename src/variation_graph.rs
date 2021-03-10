@@ -14,7 +14,7 @@ const INDEL : u8 = '-' as u8;
 
 #[derive(Debug)]
 pub struct VariationGraph {
-    graph : HashGraph,
+    pub graph : HashGraph,
 }
 
 impl VariationGraph {
@@ -33,11 +33,10 @@ impl VariationGraph {
     fn build_vg(alignment : &Alignment) -> HashGraph {
         let (mut vg, path, mut prev_handle) = VariationGraph::init(&alignment);
     
-        println!("After Initialization : ");
-        println!("vg : {:#?}", vg);
-        println!("path : {:#?}", path);
-        println!("prev_handle : {:#?}", prev_handle);
-        println!("graph occ mem : {}", std::mem::size_of_val(&vg));
+        //println!("After Initialization : ");
+        //println!("vg : {:#?}", vg);
+        //println!("path : {:#?}", path);
+        //println!("prev_handle : {:#?}", prev_handle);
     
         for i in 0..alignment.0[0].seq.len() {
             let mut current_nucleotide = Vec::new();
