@@ -1,8 +1,9 @@
 use variation_graph::{
     maf_paser::{Alignment, Sequence},
-    variation_graph:: {build_vg_from_seq_alignment},
+    variation_graph:: {VariationGraph},
 };
-use handlegraph::{
+
+/*use handlegraph::{
     handle::{Direction, Edge, Handle, NodeId},
     handlegraph::*,
     hashgraph::{
@@ -11,9 +12,10 @@ use handlegraph::{
     },
     mutablehandlegraph::*,
     pathhandlegraph::*,
-};
+};*/
 
 #[test]
-fn first_test() {
-    
+fn file_not_found() {
+    let graph = VariationGraph::new("./dataset/file_not_found.maf");
+    assert_eq!("Error in file reading", graph.err().unwrap());
 }
