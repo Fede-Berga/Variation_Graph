@@ -1,14 +1,10 @@
 use crate::maf_paser::{
     Alignment,
-    //Sequence,
 };
 use handlegraph::{
-    handle::{Direction, Edge, Handle, NodeId},
-    handlegraph::*,
+    handle::{Edge, Handle},
     hashgraph::{
-        path::{Step, StepIx},
         HashGraph,
-        Node,
     },
     mutablehandlegraph::*,
     pathhandlegraph::*,
@@ -16,50 +12,75 @@ use handlegraph::{
 
 const INDEL : u8 = '-' as u8;
 
-pub fn build_vg_v2(alignment : &Alignment) ->() {
-    let mut vg = HashGraph::new();
-    let mut path = Vec::new();
-    let first_handle = vg.append_handle(b"First_node");
-    let mut prev_handle = vec![first_handle; alignment.0.len()];
+#[derive(Debug)]
+pub struct VariationGraph {
+    graph : HashGraph,
+}
 
-    for seq in alignment.0.iter() {
-        let p = vg.create_path(seq.name.as_bytes(), false).unwrap();
-        vg.path_append_step(p, first_handle);
-        path.push(p);
+impl VariationGraph {
+    pub fn new(file_name : &str) -> Result<VariationGraph, &'static str> {
+        match Alignment::new(file_name) {
+            Ok(alignment) => Ok(VariationGraph::build_graph(&alignment)),
+            Err(error) => Err(error),
+        }
     }
 
-    println!("{:?}", prev_handle);
+    pub fn build_graph(alignment : &Alignment) -> VariationGraph {
+        let vg = VariationGraph::build_vg(&alignment);
+        VariationGraph {graph : vg,}
+    }
 
-    for i in 0..alignment.0[0].seq.len() {
-        let mut current_nucleotide = Vec::new();
-
-        for sequence in alignment.0.iter() {
-            if sequence.seq[i] != INDEL && !current_nucleotide.contains(&sequence.seq[i]) {
-                current_nucleotide.push(sequence.seq[i]);
+    fn build_vg(alignment : &Alignment) -> HashGraph {
+        let (mut vg, path, mut prev_handle) = VariationGraph::init(&alignment);
+    
+        println!("After Initialization : ");
+        println!("vg : {:#?}", vg);
+        println!("path : {:#?}", path);
+        println!("prev_handle : {:#?}", prev_handle);
+        println!("graph occ mem : {}", std::mem::size_of_val(&vg));
+    
+        for i in 0..alignment.0[0].seq.len() {
+            let mut current_nucleotide = Vec::new();
+    
+            for sequence in alignment.0.iter() {
+                if sequence.seq[i] != INDEL && !current_nucleotide.contains(&sequence.seq[i]) {
+                    current_nucleotide.push(sequence.seq[i]);
+                }
             }
-        }
-
-        println!("{:?}", current_nucleotide);
-
-        for nucleotide in current_nucleotide {
-            let handle = vg.append_handle(&vec![nucleotide]);
-            for (j, sequence) in alignment.0.iter().enumerate() {
-                if sequence.seq[i] == nucleotide {
-                    vg.create_edge(Edge(prev_handle[j], handle));
-                    prev_handle[j] = handle;
-                    vg.path_append_step(path[j], handle);
+    
+            println!("{:?}", current_nucleotide);
+    
+            for nucleotide in current_nucleotide {
+                let handle = vg.append_handle(&vec![nucleotide]);
+                for (j, sequence) in alignment.0.iter().enumerate() {
+                    if sequence.seq[i] == nucleotide {
+                        vg.create_edge(Edge(prev_handle[j], handle));
+                        prev_handle[j] = handle;
+                        vg.path_append_step(path[j], handle);
+                    }
                 }
             }
         }
+        //Add Last Node
+        vg
     }
 
-    for path_item in path.iter() {
-        vg.print_path(path_item);
+    fn init(alignment : &Alignment) -> (HashGraph, Vec<PathId> , Vec<Handle>) {
+        let mut vg = HashGraph::new();
+        let mut path = Vec::new();
+        let first_handle = vg.append_handle(b"First_node");
+        let prev_handle = vec![first_handle; alignment.0.len()];
+    
+        for seq in alignment.0.iter() {
+            let p = vg.create_path(seq.name.as_bytes(), false).unwrap();
+            vg.path_append_step(p, first_handle);
+            path.push(p);
+        }
+    
+        (vg, path, prev_handle)
     }
-
-    println!("graph occ mem : {}", std::mem::size_of_val(&vg));
 }
-
+/*
 pub fn build_vg_V1(alignment : &Alignment) -> () {
     let mut current_index : Vec<usize> = vec![0; alignment.0.len()];
     let (mut vg, path) = initialize_graph(&alignment);
@@ -137,3 +158,4 @@ fn set_current_index(alignment : &Alignment, current_index : Vec<usize>) -> Vec<
             })
             .collect()
 }
+*/
