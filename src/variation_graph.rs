@@ -14,17 +14,20 @@ use handlegraph::{
 
 const INDEL : u8 = '-' as u8;
 
+///Represents a variation graph
 #[derive(Debug)]
 pub struct VariationGraph {
     pub graph : HashGraph,
 }
 
 impl VariationGraph {
+    ///Builds a variation graph given an Alignment
     pub fn new(alignment : &Alignment) -> VariationGraph {
         let vg = VariationGraph::build_vg(&alignment);
         VariationGraph {graph : vg}
     }
 
+    ///Prints the path corrisponding to 'path_name'
     pub fn print_path(&self, path_name : &str) -> Result<(), String> {
         match self.graph.path_id.get(path_name.as_bytes()) {
             Some(path) => {
@@ -36,6 +39,7 @@ impl VariationGraph {
         }
     }
 
+    ///Prints the graph's topology
     pub fn print_graph(&self) {
         for handle in self.graph.handles() {
             println!("ID : {}", handle.id());
@@ -46,7 +50,8 @@ impl VariationGraph {
             println!("Incoming Edges : {:?} \n", right);
         }
     }
-
+ 
+    ///Build an [handlegraph::hashgraph::HashGraph] given an ['maf_parser::Alignment']
     fn build_vg(alignment : &Alignment) -> HashGraph {
         //init
         let (mut vg, path, mut prev_handle) = VariationGraph::init(&alignment);
@@ -84,6 +89,7 @@ impl VariationGraph {
         vg
     }
 
+    /// Initializes data structure for ['variation_graph::build_vg']
     fn init(alignment : &Alignment) -> (HashGraph, Vec<PathId> , Vec<Handle>) {
         let mut vg = HashGraph::new();
         let mut path = Vec::new();
