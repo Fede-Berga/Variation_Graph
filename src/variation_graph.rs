@@ -2,8 +2,10 @@ use crate::maf_paser::{
     Alignment,
 };
 use handlegraph::{
-    handle::{Edge, Handle},
+    handle::{Direction, Edge, Handle, NodeId},
+    handlegraph::*,
     hashgraph::{
+        path::{Step, StepIx},
         HashGraph,
     },
     mutablehandlegraph::*,
@@ -23,14 +25,25 @@ impl VariationGraph {
         VariationGraph {graph : vg}
     }
 
-    pub fn print_path(&self, path_name : &[u8]) -> Result<(), String> {
-        match self.graph.path_id.get(path_name) {
+    pub fn print_path(&self, path_name : &str) -> Result<(), String> {
+        match self.graph.path_id.get(path_name.as_bytes()) {
             Some(path) => {
-                println!("Path name : {}", std::str::from_utf8(path_name).unwrap());
+                println!("Path name : {}", path_name);
                 self.graph.print_path(path);
                 Ok(())
             },
-            _ => Err(format!("Path \'{}\' does not exist", std::str::from_utf8(path_name).unwrap())),
+            _ => Err(format!("Path \'{}\' does not exist", path_name)),
+        }
+    }
+
+    pub fn print_graph(&self) {
+        for handle in self.graph.handles() {
+            println!("ID : {}", handle.id());
+            println!("Value : {}", self.graph.get_node_unchecked(&handle.id()).sequence.as_slice().iter().map(|&x| x as char).collect::<String>());
+            let left : Vec<_> = self.graph.neighbors(handle, Direction::Left).map(|h| h.id()).collect();
+            let right : Vec<_> = self.graph.neighbors(handle, Direction::Right).map(|h| h.id()).collect();
+            println!("Right nodes : {:?}", left);
+            println!("Left nodes : {:?} \n", right);
         }
     }
 
