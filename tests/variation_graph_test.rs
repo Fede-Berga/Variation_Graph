@@ -1,3 +1,6 @@
+//Run the tests using :
+//cargo test [test_name] -- --nocapture
+
 use variation_graph::{
     maf_paser::{Alignment},
     variation_graph:: {VariationGraph},
