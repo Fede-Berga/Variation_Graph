@@ -2,10 +2,9 @@ use crate::maf_paser::{
     Alignment,
 };
 use handlegraph::{
-    handle::{Direction, Edge, Handle, NodeId},
+    handle::{Direction, Edge, Handle},
     handlegraph::*,
     hashgraph::{
-        path::{Step, StepIx},
         HashGraph,
     },
     mutablehandlegraph::*,

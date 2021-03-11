@@ -1,17 +1,6 @@
 use variation_graph::{
-    maf_paser::{Alignment, Sequence},
+    maf_paser::{Alignment},
     variation_graph:: {VariationGraph},
-};
-
-use handlegraph::{
-    handle::{Direction, Edge, Handle, NodeId},
-    handlegraph::*,
-    hashgraph::{
-        path::{Step, StepIx},
-        HashGraph,
-    },
-    mutablehandlegraph::*,
-    pathhandlegraph::*,
 };
 
 fn run_test(file_name : &str) -> Result<(), String>{
@@ -59,6 +48,14 @@ fn two_sequence() {
 #[test]
 fn multiple_sequences() {
     match run_test("./dataset/one_al_block.maf") {
+        Ok(_) => println!("Successful \n\n"),
+        Err(error) => println!("Error : {} \n\n", error),
+    }
+}
+
+#[test]
+fn multiple_sequences_with_info_block() {
+    match run_test("./dataset/one_al_block_with_info.maf") {
         Ok(_) => println!("Successful \n\n"),
         Err(error) => println!("Error : {} \n\n", error),
     }
