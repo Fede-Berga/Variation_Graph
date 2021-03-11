@@ -48,8 +48,10 @@ impl VariationGraph {
     }
 
     fn build_vg(alignment : &Alignment) -> HashGraph {
+        //init
         let (mut vg, path, mut prev_handle) = VariationGraph::init(&alignment);
-    
+        
+        //Building
         for i in 0..alignment.0[0].seq.len() {
             let mut current_nucleotide = Vec::new();
     
@@ -71,6 +73,7 @@ impl VariationGraph {
             }
         }
         
+        //Epilogue
         let last_handle = vg.append_handle(b"Last_node");
 
         for (i, handle) in prev_handle.into_iter().enumerate() {
