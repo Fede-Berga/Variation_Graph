@@ -42,8 +42,8 @@ impl VariationGraph {
             println!("Value : {}", self.graph.get_node_unchecked(&handle.id()).sequence.as_slice().iter().map(|&x| x as char).collect::<String>());
             let left : Vec<_> = self.graph.neighbors(handle, Direction::Left).map(|h| h.id()).collect();
             let right : Vec<_> = self.graph.neighbors(handle, Direction::Right).map(|h| h.id()).collect();
-            println!("Right nodes : {:?}", left);
-            println!("Left nodes : {:?} \n", right);
+            println!("Outgoing edges : {:?}", left);
+            println!("Incoming Edges : {:?} \n", right);
         }
     }
 
