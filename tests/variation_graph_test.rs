@@ -63,3 +63,19 @@ fn multiple_sequences_with_info_block() {
         Err(error) => println!("Error : {} \n\n", error),
     }
 }
+
+#[test]
+fn test_1() {
+    match run_test("./dataset/test_1.maf") {
+        Ok(_) => println!("Successful \n\n"),
+        Err(error) => println!("Error : {} \n\n", error),
+    }
+}
+
+#[test]
+fn test_2() {
+    match run_test("./dataset/test_2.maf") {
+        Ok(_) => println!("Successful \n\n"),
+        Err(error) => println!("Error : {} \n\n", error),
+    }
+}
