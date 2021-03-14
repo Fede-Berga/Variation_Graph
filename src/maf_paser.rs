@@ -97,9 +97,10 @@ impl Alignment {
     fn get_alignments(block : MAFBlock) -> Alignment{
         let alignment = block.aligned_entries()
             .map(|aligned_entry| {
+                let seq : Vec<_>= aligned_entry.alignment.iter().map(|&byte| (byte as char).to_ascii_uppercase() as u8).collect();
                 Sequence {
                     name : aligned_entry.seq.clone(),
-                    seq : aligned_entry.alignment.clone(),
+                    seq : seq,
                 }
             })
             .collect();

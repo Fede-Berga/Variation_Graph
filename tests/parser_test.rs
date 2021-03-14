@@ -103,3 +103,33 @@ fn parse_file_mul_alignment() {
     assert_eq!(al.0, expected);
 }
 
+#[test]
+fn parse_file_upper_case() {
+    let al = Alignment::new("./dataset/test_3.maf").unwrap();
+    let expected : Vec<Sequence> = 
+    vec![
+        Sequence {
+            name : String::from("hg18.chr7"),
+            seq : vec![84, 65, 65, 65, 71, 65],
+        },
+        Sequence{
+            name : String::from("panTro1.chr6"),
+            seq : vec![84, 65, 65, 65, 71, 65],
+        },
+        Sequence {
+            name : String::from("baboon"),
+            seq :  vec![84, 65, 65, 65, 71, 65],
+        },
+        Sequence {
+            name : String::from("mm4.chr6"),
+            seq : vec![84, 65, 65, 65, 71, 65],
+        },
+        Sequence {
+            name :  String::from("rn3.chr4"),
+            seq : vec![84, 65, 65, 71, 71, 65],
+        }
+    ];
+    assert_eq!(al.0, expected);
+}
+
+

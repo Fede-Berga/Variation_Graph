@@ -79,3 +79,11 @@ fn test_2() {
         Err(error) => println!("Error : {} \n\n", error),
     }
 }
+
+#[test]
+fn test_3() {
+    match run_test("./dataset/test_3.maf") {
+        Ok(_) => println!("Successful \n\n"),
+        Err(error) => println!("Error : {} \n\n", error),
+    }
+}
