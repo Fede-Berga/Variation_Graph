@@ -10,6 +10,7 @@ use handlegraph::{
     mutablehandlegraph::*,
     pathhandlegraph::*,
 };
+use std::cmp;
 
 const INDEL : u8 = '-' as u8;
 
@@ -103,4 +104,69 @@ impl VariationGraph {
     
         (vg, path, prev_handle)
     }
+}
+
+#[derive(Clone, Debug)]
+struct Cell {
+    payload : i32,
+    prev : usize,
+}
+
+pub fn get_partitioning(alignment : &Alignment, threshold : usize) {
+    let mut dyn_prog : Vec<Cell> =vec![Cell{payload : i32::MIN, prev : 0}; threshold];
+    let n = alignment.0[0].seq.len();
+
+    //Base Case
+    println!("Base case : ");
+    let base_case = segment_cardinality(alignment, 0, threshold);
+    dyn_prog.push(Cell{payload : base_case, prev : 0});
+
+    //Recursion
+    for j in (threshold + 1)..n {
+        println!("dyn_prog : {:#?}", dyn_prog);
+        let mut min = i32::MAX;
+        let mut prev = 0;
+        for h in 0..=(j - threshold) {
+            let seg_card = segment_cardinality(alignment, h + 1, j + 1);
+            println!("M(h) = {}", dyn_prog[h].payload);
+            println!("C[h + 1, j] = {}\n\n", seg_card);
+            let max = cmp::max(dyn_prog[h].payload, seg_card);
+            if min > max {
+                min = max;
+                prev = h;
+            }
+        }
+        dyn_prog.push(Cell{payload : min, prev : prev});
+    }
+
+    println!("dyn_prog : {:#?}", dyn_prog);
+
+    println!("bounds : {:?}", trace_back(dyn_prog));
+}
+
+fn segment_cardinality(alignment : &Alignment, begin : usize, end : usize) -> i32 {
+    println!("begin = {}, end = {}", begin, end - 1);
+    let mut subsequences : Vec<String> = Vec::new();
+    for i in 0..alignment.0.len() {
+        let sub_as_string = String::from_utf8(alignment.0[i].seq[begin..end].to_vec()).unwrap();
+        if !subsequences.contains(&sub_as_string) {
+            subsequences.push(sub_as_string);
+        }
+    }
+    println!("{:?}", subsequences);
+    subsequences.len() as i32
+}
+
+fn trace_back(dyn_prog : Vec<Cell>) -> Vec<usize> {
+    let mut current = &dyn_prog[dyn_prog.len() - 1];
+    let mut res = Vec::new();
+
+    while current.prev != 0 {
+        res.push(current.prev);
+        current = &dyn_prog[current.prev];
+    }
+
+    res.reverse();
+
+    res
 }
