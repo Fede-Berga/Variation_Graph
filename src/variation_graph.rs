@@ -20,10 +20,16 @@ pub struct VariationGraph {
     pub graph : HashGraph,
 }
 
+#[derive(Clone, Debug)]
+struct Cell {
+    payload : i32,
+    prev : usize,
+}
+
 impl VariationGraph {
     ///Builds a variation graph given an Alignment
-    pub fn new(alignment : &Alignment) -> VariationGraph {
-        let vg = VariationGraph::build_vg(&alignment);
+    pub fn new(alignment : &Alignment, threshold : usize) -> VariationGraph {
+        let vg = VariationGraph::build_vg(&alignment, threshold);
         VariationGraph {graph : vg}
     }
 
@@ -50,7 +56,144 @@ impl VariationGraph {
             println!("Incoming Edges : {:?} \n", right);
         }
     }
- 
+
+    fn build_vg(alignment : &Alignment, threshold : usize) -> HashGraph {
+        //init
+        let (mut vg, path, mut prev_handle, mut partition) = VariationGraph::init(alignment, threshold);
+    
+        /*debug
+        for path_elem in path.iter() {
+            vg.print_path(path_elem);
+        }
+    
+        println!("prev_handle : {:?}", prev_handle);
+        println!("partition : {:?}", partition);
+        */
+
+        //build
+        let mut i = 0;
+    
+        while i < alignment.0[0].seq.len() {
+            let mut segment = Vec::new();
+            let upper_bound = match partition.pop() {
+                Some(ub) => ub,
+                None => alignment.0[0].seq.len() - 1,
+            };
+    
+            for sequence in alignment.0.iter() {
+                let subsequence : Vec<u8> = sequence.seq[i..=upper_bound].iter().filter(|&&ch| ch != INDEL).map(|&ch| ch).collect();
+                if !segment.contains(&subsequence) {
+                    segment.push(subsequence);
+                }
+            }
+    
+            //println!("segment : {:?}", segment.iter().map(|sub| sub.iter().map(|&ch| ch as char).collect::<String>()).collect::<Vec<_>>());
+    
+            for subsequence in segment {
+                if ! subsequence.is_empty() {
+                    let handle = vg.append_handle(&subsequence[..]);
+                    for (j, sequence) in alignment.0.iter().enumerate() {
+                        let clean_sequence : Vec<u8> = sequence.seq[i..=upper_bound].iter().filter(|&&ch| ch != INDEL).map(|&ch| ch).collect();
+                        //println!("{:?} - {:?}", clean_sequence, subsequence);
+                        if clean_sequence == subsequence {
+                            vg.create_edge(Edge(prev_handle[j], handle));
+                            prev_handle[j] = handle;
+                            vg.path_append_step(path[j], handle);
+                        }
+                    }
+                }
+            }
+    
+            i = upper_bound + 1;
+        }
+        
+        //Debug
+        /*for path_elem in path.iter() {
+            vg.print_path(path_elem);
+        }*/
+
+        vg
+    }
+
+    fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Vec<usize>) {
+        let mut vg = HashGraph::new();
+        let mut path = Vec::new();
+        let partition = VariationGraph::get_partitioning(alignment, threshold);
+        let first_handle = vg.append_handle(b"First_node");
+        let prev_handle = vec![first_handle; alignment.0.len()];
+    
+        for seq in alignment.0.iter() {
+            let p = vg.create_path(seq.name.as_bytes(), false).unwrap();
+            vg.path_append_step(p, first_handle);
+            path.push(p);
+        }
+    
+        (vg, path, prev_handle, partition)
+    }
+
+    fn get_partitioning(alignment : &Alignment, threshold : usize) -> Vec<usize> {
+        let mut dyn_prog : Vec<Cell> =vec![Cell{payload : i32::MIN, prev : 0}; threshold];
+        let n = alignment.0[0].seq.len();
+    
+        //Base Case
+        //println!("Base case : ");
+        let base_case = VariationGraph::segment_cardinality(alignment, 0, threshold);
+        dyn_prog.push(Cell{payload : base_case, prev : 0});
+    
+        //Recursion
+        for j in (threshold + 1)..n {
+            //println!("dyn_prog : {:#?}", dyn_prog);
+            let mut min = i32::MAX;
+            let mut prev = 0;
+            for h in 0..=(j - threshold) {
+                let seg_card = VariationGraph::segment_cardinality(alignment, h + 1, j + 1);
+                //println!("M(h) = {}", dyn_prog[h].payload);
+                //println!("C[h + 1, j] = {}", seg_card);
+                let max = cmp::max(dyn_prog[h].payload, seg_card);
+                if min > max {
+                    min = max;
+                    prev = h;
+                }
+            }
+            //println!("min : {}\n\n", min);
+            dyn_prog.push(Cell{payload : min, prev : prev});
+        }
+    
+        println!("dyn_prog : {:#?}", dyn_prog);
+    
+        VariationGraph::trace_back(dyn_prog, threshold)
+    
+        //println!("bounds : {:?}", trace_back(dyn_prog, threshold));
+    }
+    
+    fn segment_cardinality(alignment : &Alignment, begin : usize, end : usize) -> i32 {
+        //println!("begin = {}, end = {}", begin, end - 1);
+        let mut subsequences : Vec<String> = Vec::new();
+        for i in 0..alignment.0.len() {
+            let sub_as_string = String::from_utf8(alignment.0[i].seq[begin..end].to_vec()).unwrap();
+            if !subsequences.contains(&sub_as_string) {
+                subsequences.push(sub_as_string);
+            }
+        }
+        //println!("{:?}", subsequences);
+        subsequences.len() as i32
+    }
+    
+    fn trace_back(dyn_prog : Vec<Cell>, threshold : usize) -> Vec<usize> {
+        let mut current = &dyn_prog[dyn_prog.len() - 1];
+        let mut res = Vec::new();
+    
+        while current.prev >= threshold {
+            res.push(current.prev);
+            current = &dyn_prog[current.prev];
+        }
+    
+        //res.reverse();
+    
+        res
+    }
+
+    /*
     ///Build an [handlegraph::hashgraph::HashGraph] given an ['maf_parser::Alignment']
     fn build_vg(alignment : &Alignment) -> HashGraph {
         //init
@@ -103,145 +246,5 @@ impl VariationGraph {
         }
     
         (vg, path, prev_handle)
-    }
-}
-
-pub fn build_vg(alignment : &Alignment, threshold : usize) -> () {
-    //init
-    let (mut vg, path, mut prev_handle, mut partition) = init(alignment, threshold);
-
-    //debug
-    for path_elem in path.iter() {
-        vg.print_path(path_elem);
-    }
-
-    println!("prev_handle : {:?}", prev_handle);
-    println!("partition : {:?}", partition);
-
-    //build
-    let mut i = 0;
-
-    while i < alignment.0[0].seq.len() {
-        let mut segment = Vec::new();
-        let upper_bound = match partition.pop() {
-            Some(ub) => ub,
-            None => alignment.0[0].seq.len() - 1,
-        };
-
-        for sequence in alignment.0.iter() {
-            let subsequence : Vec<u8> = sequence.seq[i..=upper_bound].iter().filter(|&&ch| ch != INDEL).map(|&ch| ch).collect();
-            if !segment.contains(&subsequence) {
-                segment.push(subsequence);
-            }
-        }
-
-        println!("segment : {:?}", segment.iter().map(|sub| sub.iter().map(|&ch| ch as char).collect::<String>()).collect::<Vec<_>>());
-
-        for subsequence in segment {
-            if ! subsequence.is_empty() {
-                let handle = vg.append_handle(&subsequence[..]);
-                for (j, sequence) in alignment.0.iter().enumerate() {
-                    let clean_sequence : Vec<u8> = sequence.seq[i..=upper_bound].iter().filter(|&&ch| ch != INDEL).map(|&ch| ch).collect();
-                    println!("{:?} - {:?}", clean_sequence, subsequence);
-                    if clean_sequence == subsequence {
-                        vg.create_edge(Edge(prev_handle[j], handle));
-                        prev_handle[j] = handle;
-                        vg.path_append_step(path[j], handle);
-                    }
-                }
-            }
-        }
-
-        i = upper_bound + 1;
-    }
-
-    for path_elem in path.iter() {
-        vg.print_path(path_elem);
-    }
-}
-
-fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Vec<usize>) {
-    let mut vg = HashGraph::new();
-    let mut path = Vec::new();
-    let partition = get_partitioning(alignment, threshold);
-    let first_handle = vg.append_handle(b"First_node");
-    let prev_handle = vec![first_handle; alignment.0.len()];
-
-    for seq in alignment.0.iter() {
-        let p = vg.create_path(seq.name.as_bytes(), false).unwrap();
-        vg.path_append_step(p, first_handle);
-        path.push(p);
-    }
-
-    (vg, path, prev_handle, partition)
-}
-
-#[derive(Clone, Debug)]
-struct Cell {
-    payload : i32,
-    prev : usize,
-}
-
-pub fn get_partitioning(alignment : &Alignment, threshold : usize) -> Vec<usize> {
-    let mut dyn_prog : Vec<Cell> =vec![Cell{payload : i32::MIN, prev : 0}; threshold];
-    let n = alignment.0[0].seq.len();
-
-    //Base Case
-    //println!("Base case : ");
-    let base_case = segment_cardinality(alignment, 0, threshold);
-    dyn_prog.push(Cell{payload : base_case, prev : 0});
-
-    //Recursion
-    for j in (threshold + 1)..n {
-        //println!("dyn_prog : {:#?}", dyn_prog);
-        let mut min = i32::MAX;
-        let mut prev = 0;
-        for h in 0..=(j - threshold) {
-            let seg_card = segment_cardinality(alignment, h + 1, j + 1);
-            //println!("M(h) = {}", dyn_prog[h].payload);
-            //println!("C[h + 1, j] = {}", seg_card);
-            let max = cmp::max(dyn_prog[h].payload, seg_card);
-            if min > max {
-                min = max;
-                prev = h;
-            }
-        }
-        //println!("min : {}\n\n", min);
-        dyn_prog.push(Cell{payload : min, prev : prev});
-    }
-
-    println!("dyn_prog : {:#?}", dyn_prog);
-
-    trace_back(dyn_prog, threshold)
-
-    //println!("bounds : {:?}", trace_back(dyn_prog, threshold));
-}
-
-
-
-fn segment_cardinality(alignment : &Alignment, begin : usize, end : usize) -> i32 {
-    //println!("begin = {}, end = {}", begin, end - 1);
-    let mut subsequences : Vec<String> = Vec::new();
-    for i in 0..alignment.0.len() {
-        let sub_as_string = String::from_utf8(alignment.0[i].seq[begin..end].to_vec()).unwrap();
-        if !subsequences.contains(&sub_as_string) {
-            subsequences.push(sub_as_string);
-        }
-    }
-    //println!("{:?}", subsequences);
-    subsequences.len() as i32
-}
-
-fn trace_back(dyn_prog : Vec<Cell>, threshold : usize) -> Vec<usize> {
-    let mut current = &dyn_prog[dyn_prog.len() - 1];
-    let mut res = Vec::new();
-
-    while current.prev >= threshold {
-        res.push(current.prev);
-        current = &dyn_prog[current.prev];
-    }
-
-    //res.reverse();
-
-    res
+    }*/
 }
