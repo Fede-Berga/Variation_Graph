@@ -112,6 +112,14 @@ impl VariationGraph {
             vg.print_path(path_elem);
         }*/
 
+        //Epilogue
+        let last_handle = vg.append_handle(b"Last_node");
+
+        for (i, handle) in prev_handle.into_iter().enumerate() {
+            vg.create_edge(Edge(handle, last_handle));
+            vg.path_append_step(path[i], last_handle);
+        }
+
         vg
     }
 
@@ -146,6 +154,10 @@ impl VariationGraph {
             let mut min = i32::MAX;
             let mut prev = 0;
             for h in 0..=(j - threshold) {
+                /*let mut begin = h;
+                if h < threshold {
+                    begin = 0;
+                }*/
                 let seg_card = VariationGraph::segment_cardinality(alignment, h + 1, j + 1);
                 //println!("M(h) = {}", dyn_prog[h].payload);
                 //println!("C[h + 1, j] = {}", seg_card);
