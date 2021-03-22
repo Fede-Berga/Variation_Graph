@@ -24,6 +24,8 @@ fn run_test(file_name : &str) -> Result<(), String>{
     Ok(())
 }
 
+//TODO Udate tests!!!
+
 #[test]
 fn file_not_found() {
     match run_test("./dataset/file_not_found.maf") {
