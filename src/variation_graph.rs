@@ -18,6 +18,8 @@ const INDEL : u8 = '-' as u8;
 #[derive(Debug)]
 pub struct VariationGraph {
     pub graph : HashGraph,
+    First_Handle : Handle,
+    Last_Handle : Handle,
 }
 
 #[derive(Clone, Debug)]
@@ -44,6 +46,16 @@ impl VariationGraph {
             _ => Err(format!("Path \'{}\' does not exist", path_name)),
         }
     }
+
+    /*
+    pub fn get_possible_paths(&self) -> usize {
+
+    }
+
+    fn get_possible_paths_helper(&self, handle : &Handle) -> usize {
+        let outgoing_iter = self.graph.neighbors(handle, Direction::Right)
+    }
+    */
 
     ///Prints the graph's topology
     pub fn print_graph(&self) {
