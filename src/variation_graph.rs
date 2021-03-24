@@ -18,8 +18,8 @@ const INDEL : u8 = '-' as u8;
 #[derive(Debug)]
 pub struct VariationGraph {
     pub graph : HashGraph,
-    First_Handle : Handle,
-    Last_Handle : Handle,
+    First_Node : Handle,
+    Last_Node : Handle,
 }
 
 #[derive(Clone, Debug)]
@@ -28,11 +28,13 @@ struct Cell {
     prev : usize,
 }
 
+//enum VariationGraphError
+
 impl VariationGraph {
     ///Builds a variation graph given an Alignment
-    pub fn new(alignment : &Alignment, threshold : usize) -> VariationGraph {
-        let vg = VariationGraph::build_vg(&alignment, threshold);
-        VariationGraph {graph : vg}
+    pub fn new(alignment : &Alignment, threshold : usize) -> Result<VariationGraph,  {
+        let (vg, first_node, last_node) = VariationGraph::build_vg(&alignment, threshold);
+        VariationGraph {graph : vg, First_Node : first_node, Last_Node : last_node}
     }
 
     ///Prints the path corrisponding to 'path_name'
@@ -47,15 +49,24 @@ impl VariationGraph {
         }
     }
 
-    /*
     pub fn get_possible_paths(&self) -> usize {
-
+        self.get_possible_paths_helper(self.First_Node)
     }
 
-    fn get_possible_paths_helper(&self, handle : &Handle) -> usize {
-        let outgoing_iter = self.graph.neighbors(handle, Direction::Right)
+    fn get_possible_paths_helper(&self, handle : Handle) -> usize {
+        let outgoing_edges = self.graph.neighbors(handle, Direction::Right).count();
+
+        if outgoing_edges == 0 {
+            return 1 as usize;
+        }
+
+        let mut count = 0;
+        for node in self.graph.neighbors(handle, Direction::Right) {
+            count += self.get_possible_paths_helper(node);
+        }
+
+        return count;
     }
-    */
 
     ///Prints the graph's topology
     pub fn print_graph(&self) {
@@ -69,9 +80,9 @@ impl VariationGraph {
         }
     }
 
-    fn build_vg(alignment : &Alignment, threshold : usize) -> HashGraph {
+    fn build_vg(alignment : &Alignment, threshold : usize) -> (HashGraph, Handle, Handle) {
         //init
-        let (mut vg, path, mut prev_handle, mut partition) = VariationGraph::init(alignment, threshold);
+        let (mut vg, path, mut prev_handle, mut partition, first_node) = VariationGraph::init(alignment, threshold);
     
         /*debug
         for path_elem in path.iter() {
@@ -125,17 +136,17 @@ impl VariationGraph {
         }*/
 
         //Epilogue
-        let last_handle = vg.append_handle(b"Last_node");
+        let last_node = vg.append_handle(b"Last_node");
 
         for (i, handle) in prev_handle.into_iter().enumerate() {
-            vg.create_edge(Edge(handle, last_handle));
-            vg.path_append_step(path[i], last_handle);
+            vg.create_edge(Edge(handle, last_node));
+            vg.path_append_step(path[i], last_node);
         }
 
-        vg
+        (vg, first_node, last_node)
     }
 
-    fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Vec<usize>) {
+    fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Vec<usize>, Handle) {
         let mut vg = HashGraph::new();
         let mut path = Vec::new();
         let partition = VariationGraph::get_partitioning(alignment, threshold);
@@ -148,7 +159,7 @@ impl VariationGraph {
             path.push(p);
         }
     
-        (vg, path, prev_handle, partition)
+        (vg, path, prev_handle, partition, first_handle)
     }
 
     pub fn get_partitioning(alignment : &Alignment, threshold : usize) -> Vec<usize> {
