@@ -28,24 +28,37 @@ struct Cell {
     prev : usize,
 }
 
-//enum VariationGraphError
+#[derive(Debug)]
+pub enum VariationGraphError {
+    InvalidThreshold(String),
+    PathNotFound(String),
+}
 
 impl VariationGraph {
     ///Builds a variation graph given an Alignment
-    pub fn new(alignment : &Alignment, threshold : usize) -> Result<VariationGraph,  {
-        let (vg, first_node, last_node) = VariationGraph::build_vg(&alignment, threshold);
-        VariationGraph {graph : vg, First_Node : first_node, Last_Node : last_node}
+    pub fn new(alignment : &Alignment, threshold : usize) -> Result<VariationGraph, VariationGraphError> {
+        let upper_bound = alignment.0[0].seq.len();
+        if threshold > 0 && threshold < upper_bound{
+            let (vg, first_node, last_node) = VariationGraph::build_vg(&alignment, threshold);
+            Ok(VariationGraph {graph : vg, First_Node : first_node, Last_Node : last_node})
+        } else {
+            Err(
+                VariationGraphError::InvalidThreshold(
+                    format!("threshold : {} not valid, must be [1, {}]", threshold, upper_bound)
+                )
+            )
+        }
     }
 
     ///Prints the path corrisponding to 'path_name'
-    pub fn print_path(&self, path_name : &str) -> Result<(), String> {
+    pub fn print_path(&self, path_name : &str) -> Result<(), VariationGraphError> {
         match self.graph.path_id.get(path_name.as_bytes()) {
             Some(path) => {
                 println!("Path name : {}", path_name);
                 self.graph.print_path(path);
                 Ok(())
             },
-            _ => Err(format!("Path \'{}\' does not exist", path_name)),
+            _ => Err(VariationGraphError::PathNotFound(format!("Path \"{}\" does not exist", path_name))),
         }
     }
 

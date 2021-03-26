@@ -6,10 +6,13 @@ use variation_graph::{
 fn main() {
     let alignment = Alignment::new("./dataset/test_2.maf").unwrap();
 
-    let graph = VariationGraph::new(&alignment, 1 as usize);
+    let graph = VariationGraph::new(&alignment, 1 as usize).unwrap();
 
     for seq in alignment.0.iter() {
-        graph.print_path(&seq.name).unwrap();
+        match graph.print_path("gianni") {
+            Err(e) => println!("Error : {:?}", e),
+            _ => {},
+        }
     }
 
     graph.print_graph();
