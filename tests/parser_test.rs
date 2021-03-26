@@ -1,26 +1,27 @@
 use variation_graph::{
     maf_paser::Alignment,
     maf_paser::Sequence,
+    maf_paser::ParserError,
 };
 
 #[test]
 fn parse_file_not_found() {
     let al = Alignment::new("./dataset/file_not_found.maf");
-    let expected : Result<Alignment, &str> = Err("Error in file reading");
+    let expected : Result<Alignment, ParserError> = Err(ParserError::FileNotFound(String::from("Error in file reading")));
     assert_eq!(al, expected);
 }
 
 #[test]
 fn parse_emply_file() {
     let al = Alignment::new("./dataset/empty.maf");
-    let expected : Result<Alignment, &str> = Err("Alignment block not found");
+    let expected : Result<Alignment, ParserError> = Err(ParserError::AlignmentBlockNotFound(String::from("Alignment block not found")));
     assert_eq!(al, expected);
 }
 
 #[test]
 fn parse_file_no_alignment_block() {
-    let al = Alignment::new("./dataset/no_alignment_block.maf");
-    let expected : Result<Alignment, &str> = Err("Alignment block not found");
+    let al : Result<Alignment, ParserError> = Alignment::new("./dataset/no_alignment_block.maf");
+    let expected : Result<Alignment, ParserError> = Err(ParserError::AlignmentBlockNotFound(String::from("Alignment block not found")));
     assert_eq!(al, expected);
 }
 
@@ -60,15 +61,15 @@ fn parse_file_one_alignment_block_with_info_lines() {
     vec![
         Sequence {
             name : String::from("hg16.chr7"),
-            seq : vec![103, 99, 97, 103, 99, 116, 103, 97, 97, 97, 97, 99, 97],
+            seq : vec![71, 67, 65, 71, 67, 84, 71, 65, 65, 65, 65, 67, 65],
         },
         Sequence{
             name : String::from("panTro1.chr6"),
-            seq : vec![103, 99, 97, 103, 99, 116, 103, 97, 97, 97, 97, 99, 97],
+            seq : vec![71, 67, 65, 71, 67, 84, 71, 65, 65, 65, 65, 67, 65],
         },
         Sequence {
             name : String::from("baboon"),
-            seq :  vec![103, 99, 97, 103, 99, 116, 103, 97, 97, 97, 97, 99, 97],
+            seq : vec![71, 67, 65, 71, 67, 84, 71, 65, 65, 65, 65, 67, 65],
         }
     ];
     assert_eq!(al.0, expected);

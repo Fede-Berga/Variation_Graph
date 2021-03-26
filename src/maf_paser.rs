@@ -9,6 +9,12 @@ use std::fmt;
 #[derive(Debug, PartialEq, Eq)]
 pub struct Alignment(pub Vec<Sequence>);
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum ParserError {
+    FileNotFound(String),
+    AlignmentBlockNotFound(String),
+}
+
 /// Represents an aligned sequence
 #[derive(Debug, PartialEq, Eq)]
 pub struct Sequence {
@@ -47,16 +53,19 @@ impl Alignment {
     /// # Arguments
     /// 
     /// * `file_name` - File from which the alignment block is fetched
-    pub fn new(file_name : &str) -> Result<Alignment, &'static str> {
+    pub fn new(file_name : &str) -> Result<Alignment, ParserError> {
         let contents = match Alignment::get_file_content(file_name) {
-            Err(_) => return Err("Error in file reading"),
+            Err(_) => return Err(ParserError::FileNotFound(String::from("Error in file reading"))),
             Ok(result) => result,
         };
     
-        let alignment_block = match Alignment::get_block(contents) {
-            Err(error) => return Err(error),
+        /*let alignment_block = match Alignment::get_block(contents) {
+            Err(error) => return Err(ParserError::AlignmentBlockNotFound(String::from("Alignment not found"))),
             Ok(result) => result,
-        };
+        };*/
+
+        let alignment_block = Alignment::get_block(contents)?;
+
         Ok(Alignment::get_alignments(alignment_block))
     }
 
@@ -75,7 +84,7 @@ impl Alignment {
     /// # Arguments
     /// 
     /// * 'maf_contents' - Content of a MAf file
-    fn get_block(maf_contents : String) -> Result<MAFBlock, &'static str> {
+    fn get_block(maf_contents : String) -> Result<MAFBlock, ParserError> {
         for line in maf_contents.lines() {
             let i = maf_contents.find(line).unwrap();
             if let Ok(item) = next_maf_item(&mut maf_contents[i..].trim().as_bytes()) {
@@ -85,7 +94,7 @@ impl Alignment {
             }
         }
         
-        Err("Alignment block not found")
+        Err(ParserError::AlignmentBlockNotFound(String::from("Alignment block not found")))
     }
     
     /// Returns an [Alignment] containing, for each sequence, 
@@ -94,7 +103,7 @@ impl Alignment {
     ///  # Arguments
     /// 
     /// * 'block' - Block containing the alignment
-    fn get_alignments(block : MAFBlock) -> Alignment{
+    fn get_alignments(block : MAFBlock) -> Alignment {
         let alignment = block.aligned_entries()
             .map(|aligned_entry| {
                 let seq : Vec<_>= aligned_entry.alignment.iter().map(|&byte| (byte as char).to_ascii_uppercase() as u8).collect();

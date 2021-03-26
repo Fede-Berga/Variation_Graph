@@ -175,7 +175,7 @@ impl VariationGraph {
         (vg, path, prev_handle, partition, first_handle)
     }
 
-    pub fn get_partitioning(alignment : &Alignment, threshold : usize) -> Vec<usize> {
+    fn get_partitioning(alignment : &Alignment, threshold : usize) -> Vec<usize> {
         let mut dyn_prog : Vec<Cell> =vec![Cell{payload : i32::MIN, prev : 0}; threshold - 1];
         let n = alignment.0[0].seq.len();
     
@@ -245,59 +245,4 @@ impl VariationGraph {
     
         res
     }
-
-    /*
-    ///Build an [handlegraph::hashgraph::HashGraph] given an ['maf_parser::Alignment']
-    fn build_vg(alignment : &Alignment) -> HashGraph {
-        //init
-        let (mut vg, path, mut prev_handle) = VariationGraph::init(&alignment);
-        
-        //Building
-        for i in 0..alignment.0[0].seq.len() {
-            let mut current_nucleotide = Vec::new();
-    
-            for sequence in alignment.0.iter() {
-                if sequence.seq[i] != INDEL && !current_nucleotide.contains(&sequence.seq[i]) {
-                    current_nucleotide.push(sequence.seq[i]);
-                }
-            }
-    
-            for nucleotide in current_nucleotide {
-                let handle = vg.append_handle(&vec![nucleotide]);
-                for (j, sequence) in alignment.0.iter().enumerate() {
-                    if sequence.seq[i] == nucleotide {
-                        vg.create_edge(Edge(prev_handle[j], handle));
-                        prev_handle[j] = handle;
-                        vg.path_append_step(path[j], handle);
-                    }
-                }
-            }
-        }
-        
-        //Epilogue
-        let last_handle = vg.append_handle(b"Last_node");
-
-        for (i, handle) in prev_handle.into_iter().enumerate() {
-            vg.create_edge(Edge(handle, last_handle));
-            vg.path_append_step(path[i], last_handle);
-        }
-        
-        vg
-    }
-
-    /// Initializes data structure for ['variation_graph::build_vg']
-    fn init(alignment : &Alignment) -> (HashGraph, Vec<PathId> , Vec<Handle>) {
-        let mut vg = HashGraph::new();
-        let mut path = Vec::new();
-        let first_handle = vg.append_handle(b"First_node");
-        let prev_handle = vec![first_handle; alignment.0.len()];
-    
-        for seq in alignment.0.iter() {
-            let p = vg.create_path(seq.name.as_bytes(), false).unwrap();
-            vg.path_append_step(p, first_handle);
-            path.push(p);
-        }
-    
-        (vg, path, prev_handle)
-    }*/
 }

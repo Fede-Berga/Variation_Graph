@@ -9,7 +9,7 @@ fn main() {
     let graph = VariationGraph::new(&alignment, 1 as usize).unwrap();
 
     for seq in alignment.0.iter() {
-        match graph.print_path("gianni") {
+        match graph.print_path(&seq.name) {
             Err(e) => println!("Error : {:?}", e),
             _ => {},
         }

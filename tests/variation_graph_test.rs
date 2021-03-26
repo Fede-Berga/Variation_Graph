@@ -2,20 +2,36 @@
 //cargo test [test_name] -- --nocapture
 
 use variation_graph::{
-    maf_paser::{Alignment},
-    variation_graph:: {VariationGraph},
+    maf_paser::{Alignment, ParserError},
+    variation_graph:: {VariationGraph, VariationGraphError},
 };
 
+enum TestError {
+    ErrorWhileParsing(ParserError),
+    ErrorWhileBuildingVariationGraph(VariationGraphError),
+}
+
 fn run_test(file_name : &str) -> Result<(), String>{
-    let alignment = Alignment::new(file_name)?;
-    let graph = VariationGraph::new(&alignment);
+    let alignment = match Alignment::new(file_name){
+        Ok(al) => al,
+        Err(e) => return Err(format!("{:?}", e)),
+    };
+
+    let graph = match VariationGraph::new(&alignment, 1 as usize){
+        Ok(vg) => vg,
+        Err(e) => return Err(format!("{:?}", e)),
+    };
+
     let path : Vec<_> = alignment.0.iter().map(|seq| seq.name.clone()).collect();
 
     println!("Sequences : {:?} \n", path);
 
     let mut iter = path.iter();
     while let Some(name) = iter.next() {
-        graph.print_path(&name)?;
+        match graph.print_path(&name) {
+            Err(e) => return Err(format!("{:?}", e)),
+            _ => {},
+        }
         println!();
     }
     
