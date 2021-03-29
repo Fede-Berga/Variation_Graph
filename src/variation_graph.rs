@@ -1,6 +1,10 @@
 use crate::maf_paser::{
     Alignment,
 };
+use crate::partitioner::{
+    PartitionerV1,
+    Partitioner,
+};
 use handlegraph::{
     handle::{Direction, Edge, Handle},
     handlegraph::*,
@@ -10,7 +14,6 @@ use handlegraph::{
     mutablehandlegraph::*,
     pathhandlegraph::*,
 };
-use std::cmp;
 
 const INDEL : u8 = '-' as u8;
 
@@ -18,14 +21,8 @@ const INDEL : u8 = '-' as u8;
 #[derive(Debug)]
 pub struct VariationGraph {
     pub graph : HashGraph,
-    First_Node : Handle,
-    Last_Node : Handle,
-}
-
-#[derive(Clone, Debug)]
-struct Cell {
-    payload : i32,
-    prev : usize,
+    first_node : Handle,
+    last_node : Handle,
 }
 
 #[derive(Debug)]
@@ -40,7 +37,7 @@ impl VariationGraph {
         let upper_bound = alignment.0[0].seq.len();
         if threshold > 0 && threshold < upper_bound{
             let (vg, first_node, last_node) = VariationGraph::build_vg(&alignment, threshold);
-            Ok(VariationGraph {graph : vg, First_Node : first_node, Last_Node : last_node})
+            Ok(VariationGraph {graph : vg, first_node : first_node, last_node : last_node})
         } else {
             Err(
                 VariationGraphError::InvalidThreshold(
@@ -63,7 +60,7 @@ impl VariationGraph {
     }
 
     pub fn get_possible_paths(&self) -> usize {
-        self.get_possible_paths_helper(self.First_Node)
+        self.get_possible_paths_helper(self.first_node)
     }
 
     fn get_possible_paths_helper(&self, handle : Handle) -> usize {
@@ -162,7 +159,7 @@ impl VariationGraph {
     fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Vec<usize>, Handle) {
         let mut vg = HashGraph::new();
         let mut path = Vec::new();
-        let partition = VariationGraph::get_partitioning(alignment, threshold);
+        let partition = <PartitionerV1 as Partitioner>::new(alignment, threshold);
         let first_handle = vg.append_handle(b"First_node");
         let prev_handle = vec![first_handle; alignment.0.len()];
     
@@ -173,113 +170,5 @@ impl VariationGraph {
         }
     
         (vg, path, prev_handle, partition, first_handle)
-    }
-
-    fn get_partitioning(alignment : &Alignment, threshold : usize) -> Vec<usize> {
-        let mut dyn_prog : Vec<Cell> =vec![Cell{payload : i32::MIN, prev : 0}; threshold - 1];
-        let n = alignment.0[0].seq.len();
-    
-        //Base Case
-        println!("Base case : ");
-        let base_case = VariationGraph::segment_cardinality(alignment, 0, threshold);
-        dyn_prog.push(Cell{payload : base_case, prev : 0});
-    
-        //Recursion
-        VariationGraph::recursion_v2(threshold, alignment, &mut dyn_prog);
-    
-        println!("dyn_prog : {:#?}", dyn_prog);
-    
-        let tb = VariationGraph::trace_back(dyn_prog, threshold);
-    
-        println!("bounds : {:?}", tb);
-
-        tb
-    }
-
-    fn recursion_v1(threshold : usize, alignment : &Alignment, dyn_prog : &mut Vec<Cell>) {
-        let n = alignment.0[0].seq.len();
-
-        for j in threshold..n {
-            println!("dyn_prog : {:#?}", dyn_prog);
-            let mut min = i32::MAX;
-            let mut prev = 0;
-            for h in 0..=(j - threshold) {
-                let mut begin = h;
-                let seg_card;
-                if h < threshold - 1 {
-                    begin = 0;
-                    println!("[{}, {}]", begin, j);
-                    seg_card = VariationGraph::segment_cardinality(alignment, begin, j + 1);
-                } else {
-                    println!("[{}, {}]", begin + 1, j);
-                    seg_card = VariationGraph::segment_cardinality(alignment, begin + 1, j + 1);
-                }
-                println!("M(h) = {}", dyn_prog[begin].payload);
-                println!("C[h + 1, j] = {}", seg_card);
-                let max = cmp::max(seg_card, dyn_prog[begin].payload);
-                if min > max {
-                    min = max;
-                    prev = begin;
-                }
-            }
-            println!("min : {}\n\n", min);
-            dyn_prog.push(Cell{payload : min, prev : prev});
-        }
-    }
-
-    fn recursion_v2(threshold : usize, alignment : &Alignment, dyn_prog : &mut Vec<Cell>) {
-        let n = alignment.0[0].seq.len();
-
-        for j in threshold..n {
-            println!("dyn_prog : {:#?}", dyn_prog);
-            let mut min = i32::MAX;
-            let mut prev = 0;
-            for h in 0..=(j - threshold) {
-                let mut begin = h;
-                let seg_card;
-                if h < threshold - 1 {
-                    begin = 0;
-                    println!("[{}, {}]", begin, j);
-                    seg_card = VariationGraph::segment_cardinality(alignment, begin, j + 1);
-                } else {
-                    println!("[{}, {}]", begin + 1, j);
-                    seg_card = VariationGraph::segment_cardinality(alignment, begin + 1, j + 1);
-                }
-                println!("M(h) = {}", dyn_prog[begin].payload);
-                println!("C[h + 1, j] = {}", seg_card);
-                if min > seg_card {
-                    min = seg_card;
-                    prev = begin;
-                }
-            }
-            println!("min : {}\n\n", min);
-            dyn_prog.push(Cell{payload : min, prev : prev});
-        }
-    }
-
-    
-    fn segment_cardinality(alignment : &Alignment, begin : usize, end : usize) -> i32 {
-        println!("begin = {}, end = {}", begin, end - 1);
-        let mut subsequences : Vec<String> = Vec::new();
-        for i in 0..alignment.0.len() {
-            let sub_as_string = String::from_utf8(alignment.0[i].seq[begin..end].to_vec()).unwrap();
-            if !subsequences.contains(&sub_as_string) {
-                subsequences.push(sub_as_string);
-            }
-        }
-        println!("{:?}", subsequences);
-        subsequences.len() as i32
-    }
-    
-    fn trace_back(dyn_prog : Vec<Cell>, threshold : usize) -> Vec<usize> {
-        let mut current = &dyn_prog[dyn_prog.len() - 1];
-        let mut res = Vec::new();
-    
-        while current.prev != 0 {
-            res.push(current.prev);
-            current = &dyn_prog[current.prev];
-        }
-    
-        res
-    }
+    }  
 }
