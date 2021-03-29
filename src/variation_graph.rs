@@ -185,6 +185,20 @@ impl VariationGraph {
         dyn_prog.push(Cell{payload : base_case, prev : 0});
     
         //Recursion
+        VariationGraph::recursion_v2(threshold, alignment, &mut dyn_prog);
+    
+        println!("dyn_prog : {:#?}", dyn_prog);
+    
+        let tb = VariationGraph::trace_back(dyn_prog, threshold);
+    
+        println!("bounds : {:?}", tb);
+
+        tb
+    }
+
+    fn recursion_v1(threshold : usize, alignment : &Alignment, dyn_prog : &mut Vec<Cell>) {
+        let n = alignment.0[0].seq.len();
+
         for j in threshold..n {
             println!("dyn_prog : {:#?}", dyn_prog);
             let mut min = i32::MAX;
@@ -211,15 +225,38 @@ impl VariationGraph {
             println!("min : {}\n\n", min);
             dyn_prog.push(Cell{payload : min, prev : prev});
         }
-    
-        println!("dyn_prog : {:#?}", dyn_prog);
-    
-        let tb = VariationGraph::trace_back(dyn_prog, threshold);
-    
-        println!("bounds : {:?}", tb);
-
-        tb
     }
+
+    fn recursion_v2(threshold : usize, alignment : &Alignment, dyn_prog : &mut Vec<Cell>) {
+        let n = alignment.0[0].seq.len();
+
+        for j in threshold..n {
+            println!("dyn_prog : {:#?}", dyn_prog);
+            let mut min = i32::MAX;
+            let mut prev = 0;
+            for h in 0..=(j - threshold) {
+                let mut begin = h;
+                let seg_card;
+                if h < threshold - 1 {
+                    begin = 0;
+                    println!("[{}, {}]", begin, j);
+                    seg_card = VariationGraph::segment_cardinality(alignment, begin, j + 1);
+                } else {
+                    println!("[{}, {}]", begin + 1, j);
+                    seg_card = VariationGraph::segment_cardinality(alignment, begin + 1, j + 1);
+                }
+                println!("M(h) = {}", dyn_prog[begin].payload);
+                println!("C[h + 1, j] = {}", seg_card);
+                if min > seg_card {
+                    min = seg_card;
+                    prev = begin;
+                }
+            }
+            println!("min : {}\n\n", min);
+            dyn_prog.push(Cell{payload : min, prev : prev});
+        }
+    }
+
     
     fn segment_cardinality(alignment : &Alignment, begin : usize, end : usize) -> i32 {
         println!("begin = {}, end = {}", begin, end - 1);
