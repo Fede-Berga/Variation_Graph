@@ -4,9 +4,9 @@ use variation_graph::{
 };
 
 fn main() {
-    let alignment = Alignment::new("./dataset/one_al_block.maf").unwrap();
+    let alignment = Alignment::new("./dataset/test_2.maf").unwrap();
 
-    let graph = VariationGraph::new(&alignment, 3 as usize).unwrap();
+    let graph = VariationGraph::new(&alignment, 2 as usize).unwrap();
 
     for seq in alignment.0.iter() {
         match graph.print_path(&seq.name) {

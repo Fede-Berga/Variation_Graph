@@ -12,7 +12,7 @@ pub struct Partitioner;
 impl Partitioner {
 
     pub fn new(alignment : &Alignment, threshold : usize) -> Vec<usize> {
-        let mut dyn_prog : Vec<Cell> =vec![Cell{payload : i32::MIN, prev : 0}; threshold - 1];
+        let mut dyn_prog : Vec<Cell> = vec![Cell{payload : i32::MIN, prev : 0}; threshold - 1];
     
         //Base Case
         println!("Base case : ");
@@ -32,7 +32,7 @@ impl Partitioner {
     }
 
     fn segment_cardinality(alignment : &Alignment, begin : usize, end : usize) -> i32 {
-        //println!("begin = {}, end = {}", begin, end - 1);
+        println!("[{}, {}]", begin, end - 1);
         let mut subsequences : Vec<String> = Vec::new();
         for i in 0..alignment.0.len() {
             let sub_as_string = String::from_utf8(alignment.0[i].seq[begin..end].to_vec()).unwrap();
@@ -58,7 +58,7 @@ impl Partitioner {
         res
     }
 
-    #[warn(dead_code)]
+    #[allow(dead_code)]
     fn recursion_v1(threshold : usize, alignment : &Alignment, dyn_prog : &mut Vec<Cell>) {
         println!("PartitionerV1");
         let n = alignment.0[0].seq.len();
@@ -88,7 +88,7 @@ impl Partitioner {
         }
     }
 
-    #[warn(dead_code)]
+    #[allow(dead_code)]
     fn recursion_v2(threshold : usize, alignment : &Alignment, dyn_prog : &mut Vec<Cell>) {
         println!("PartitionerV2");
         let n = alignment.0[0].seq.len();
@@ -120,4 +120,76 @@ impl Partitioner {
             dyn_prog.push(Cell{payload : min, prev : prev});
         }
     }
+}
+
+pub struct GreedyPartitioner;
+
+impl GreedyPartitioner {
+
+    pub fn new(alignment : &Alignment, threshold : usize) -> Vec<usize> {
+        let partitioning = GreedyPartitioner::greedy(threshold, alignment);
+    
+        println!("bounds : {:?}", partitioning);
+
+        partitioning
+    }
+
+    fn segment_cardinality(alignment : &Alignment, begin : usize, end : usize) -> i32 {
+        println!("[{}, {}]", begin, end - 1);
+        let mut subsequences : Vec<String> = Vec::new();
+        for i in 0..alignment.0.len() {
+            let sub_as_string = String::from_utf8(alignment.0[i].seq[begin..end].to_vec()).unwrap();
+            if !subsequences.contains(&sub_as_string) {
+                subsequences.push(sub_as_string);
+            }
+        }
+        println!("{:?}", subsequences);
+        subsequences.len() as i32
+    }
+
+    fn greedy(threshold : usize, alignment : &Alignment) -> Vec<usize> {
+        let n = alignment.0[0].seq.len();
+        let mut begin : usize = 0;
+        let mut res : Vec<usize> = Vec::new();
+
+        while begin < n {
+            let mut end = begin + 1;
+            let mut seg_car = GreedyPartitioner::segment_cardinality(alignment, begin, end);
+
+            if seg_car > threshold as i32 {
+                res.push(begin);
+                begin = end;
+            } else {
+                while seg_car <= threshold as i32 && end < n {
+                    end += 1;
+                    seg_car = GreedyPartitioner::segment_cardinality(alignment, begin, end)
+                }
+                res.push(end - 2);
+                if end - begin == 1 {
+                    begin = end;
+                } else {
+                    begin = end - 1;
+                }
+            }
+            println!("res : {:?}", res)
+        }
+
+        res.reverse();
+
+        res
+        
+    }
+
+    /*fn trace_back(mut dyn_prog : Vec<Cell>) -> Vec<usize> {
+        let mut res = Vec::new();
+    
+        while let Some(cell) = dyn_prog.pop() {
+            res.push(cell.prev);
+        }
+        
+        //res.push(0);
+
+        res
+    }*/
+
 }
