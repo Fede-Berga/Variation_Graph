@@ -2,7 +2,6 @@ use crate::maf_paser::{
     Alignment,
 };
 use crate::partitioner::{
-    PartitionerV1,
     Partitioner,
 };
 use handlegraph::{
@@ -90,6 +89,8 @@ impl VariationGraph {
         }
     }
 
+    
+
     fn build_vg(alignment : &Alignment, threshold : usize) -> (HashGraph, Handle, Handle) {
         //init
         let (mut vg, path, mut prev_handle, mut partition, first_node) = VariationGraph::init(alignment, threshold);
@@ -159,7 +160,7 @@ impl VariationGraph {
     fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Vec<usize>, Handle) {
         let mut vg = HashGraph::new();
         let mut path = Vec::new();
-        let partition = <PartitionerV1 as Partitioner>::new(alignment, threshold);
+        let partition = Partitioner::new(alignment, threshold);
         let first_handle = vg.append_handle(b"First_node");
         let prev_handle = vec![first_handle; alignment.0.len()];
     
