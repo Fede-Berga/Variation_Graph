@@ -90,8 +90,6 @@ impl VariationGraph {
         }
     }
 
-    
-
     fn build_vg(alignment : &Alignment, threshold : usize) -> (HashGraph, Handle, Handle) {
         //init
         let (mut vg, path, mut prev_handle, mut partition, first_node) = VariationGraph::init(alignment, threshold);
