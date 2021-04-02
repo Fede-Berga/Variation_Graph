@@ -59,7 +59,7 @@ impl Alignment {
 
 impl Sequence {
     pub fn len(&self) -> usize {
-        self.seq.len();
+        self.seq.len()
     }
 }
 

@@ -10,8 +10,8 @@ pub struct Cell {
 
 #[derive(Debug, Copy, Clone)]
 pub struct Interval {
-    begin : usize,
-    end : usize,
+    pub begin : usize,
+    pub end : usize,
 }
 
 impl Interval {
@@ -117,7 +117,7 @@ impl GreedyPartitioner {
     }
 
     fn segment_cardinality(alignment : &Alignment, interval : Interval) -> usize {
-        println!("[{}, {}]", interval.begin, interval.end);
+        //println!("[{}, {}]", interval.begin, interval.end);
         let indel_string : String = vec!['-'; interval.end - interval.begin + 1].iter().collect();
         let mut subsequences : Vec<String> = Vec::new();
         for seq in alignment.sequences() {
@@ -126,7 +126,7 @@ impl GreedyPartitioner {
                 subsequences.push(sub_as_string);
             }
         }
-        println!("{:?}", subsequences);
+        //println!("{:?}", subsequences);
         subsequences.len()
     }
 
@@ -155,9 +155,6 @@ impl GreedyPartitioner {
                 interval.next();
             }
         }
-
-        res.reverse();
-
         res
     }
 }

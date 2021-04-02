@@ -2,7 +2,6 @@ use crate::maf_paser::{
     Alignment,
 };
 use crate::partitioner::{
-    Partitioner,
     GreedyPartitioner,
     Interval
 };
@@ -16,6 +15,7 @@ use handlegraph::{
     pathhandlegraph::*,
 };
 //fix getpossiblepath
+//modify build
 
 const INDEL : u8 = '-' as u8;
 
@@ -94,21 +94,35 @@ impl VariationGraph {
 
     fn build_vg(alignment : &Alignment, threshold : usize) -> (HashGraph, Handle, Handle) {
         //init
-        let (mut vg, path, mut prev_handle, mut partition, first_node) = VariationGraph::init(alignment, threshold);
-    
-        /*debug
-        for path_elem in path.iter() {
-            vg.print_path(path_elem);
-        }
-    
-        println!("prev_handle : {:?}", prev_handle);
-        println!("partition : {:?}", partition);
-        */
+        let (mut vg, path, mut prev_handle, partition, first_node) = VariationGraph::init(alignment, threshold);
 
-        //build
-        let mut i = 0;
+        for interval in partition.iter() {
+            let mut segment = Vec::new();
+
+            for sequence in alignment.sequences() {
+                let subsequence : Vec<u8> = sequence.seq[interval.begin..=interval.end].iter().filter(|&&ch| ch != INDEL).map(|&ch| ch).collect();
+                if !subsequence.is_empty() && !segment.contains(&subsequence) {
+                    segment.push(subsequence);
+                }
+            }
+
+            for subsequence in segment {
+                let handle = vg.append_handle(&subsequence[..]);
+                for (i, sequence) in alignment.sequences().enumerate() {
+                    let clean_sequence : Vec<u8> = sequence.seq[interval.begin..=interval.end].iter().filter(|&&ch| ch != INDEL).map(|&ch| ch).collect();
+                    if clean_sequence == subsequence {
+                        vg.create_edge(Edge(prev_handle[i], handle));
+                        prev_handle[i] = handle;
+                        vg.path_append_step(path[i], handle);
+                    }
+                }
+            }
+        }
+
+        /*let mut i = 0;
+        let n = slignment.sequences().next().unwrap().len();
     
-        while i < alignment.0[0].seq.len() {
+        while i < n {
             let mut segment = Vec::new();
             let upper_bound = match partition.pop() {
                 Some(ub) => ub,
@@ -140,11 +154,6 @@ impl VariationGraph {
             }
     
             i = upper_bound + 1;
-        }
-        
-        //Debug
-        /*for path_elem in path.iter() {
-            vg.print_path(path_elem);
         }*/
 
         //Epilogue
@@ -158,10 +167,10 @@ impl VariationGraph {
         (vg, first_node, last_node)
     }
 
-    fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Vec<usize>, Handle) {
+    fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Vec<Interval>, Handle) {
         let mut vg = HashGraph::new();
         let mut path = Vec::new();
-        let partition = vec![0 as usize; 100]; //GreedyPartitioner::new(alignment, threshold);
+        let partition = GreedyPartitioner::new(alignment, threshold);
         let first_handle = vg.append_handle(b"First_node");
         let prev_handle = vec![first_handle; alignment.0.len()];
     
@@ -170,6 +179,8 @@ impl VariationGraph {
             vg.path_append_step(p, first_handle);
             path.push(p);
         }
+
+        println!("partition : {:?}", partition);
     
         (vg, path, prev_handle, partition, first_handle)
     }  
