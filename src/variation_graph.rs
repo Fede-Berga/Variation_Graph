@@ -4,6 +4,7 @@ use crate::maf_paser::{
 use crate::partitioner::{
     Partitioner,
     GreedyPartitioner,
+    Interval
 };
 use handlegraph::{
     handle::{Direction, Edge, Handle},
@@ -14,6 +15,7 @@ use handlegraph::{
     mutablehandlegraph::*,
     pathhandlegraph::*,
 };
+//fix getpossiblepath
 
 const INDEL : u8 = '-' as u8;
 
@@ -159,7 +161,7 @@ impl VariationGraph {
     fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Vec<usize>, Handle) {
         let mut vg = HashGraph::new();
         let mut path = Vec::new();
-        let partition = GreedyPartitioner::new(alignment, threshold);
+        let partition = vec![0 as usize; 100]; //GreedyPartitioner::new(alignment, threshold);
         let first_handle = vg.append_handle(b"First_node");
         let prev_handle = vec![first_handle; alignment.0.len()];
     

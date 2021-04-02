@@ -52,8 +52,14 @@ impl Alignment {
         self.0.iter()
     }
 
-    pub fn len(&seq) -> usize {
+    pub fn len(&self) -> usize {
         self.0.len()
+    }
+}
+
+impl Sequence {
+    pub fn len(&self) -> usize {
+        self.seq.len();
     }
 }
 
@@ -70,12 +76,9 @@ impl Parser for FastaParser {
             Err(e) => return Err(ParserError::FileNotFound(format!("{:?}", e)))
         };
 
-        let seqs : Vec<_> = reader.records()
+        let seqs : Vec<Sequence> = reader.records()
             .map(|result| {
-                let record = match result {
-                    Ok(value) => value,
-                    Err(e) => Err(ParserError::FastaParserError(format!("{:?}", e)))
-                };
+                let record = result.expect("Error during fasta record parsing");
 
                 let seq : Vec<u8>= record.seq().iter().map(|&byte| (byte as char).to_ascii_uppercase() as u8).collect();
                 Sequence{name : record.id().to_string(), seq : seq}

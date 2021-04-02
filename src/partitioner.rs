@@ -1,12 +1,24 @@
 use crate::maf_paser::Alignment;
 use std::cmp;
 //TODO
-//Add Interval
-//Fix for new Alignment implementation
+//Fix Partitioner
 #[derive(Clone, Debug)]
 pub struct Cell {
     payload : i32,
     prev : usize,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Interval {
+    begin : usize,
+    end : usize,
+}
+
+impl Interval {
+    fn next(&mut self) {
+        self.begin = self.end + 1;
+        self.end = self.begin;
+    }
 }
 
 pub struct Partitioner;
@@ -100,72 +112,52 @@ pub struct GreedyPartitioner;
 
 impl GreedyPartitioner {
 
-    pub fn new(alignment : &Alignment, threshold : usize) -> Vec<usize> {
-        let partitioning = GreedyPartitioner::greedy(threshold, alignment);
-    
-        //println!("bounds : {:?}", partitioning);
-
-        partitioning
+    pub fn new(alignment : &Alignment, threshold : usize) -> Vec<Interval> {
+        GreedyPartitioner::greedy(alignment, threshold)
     }
 
-    fn segment_cardinality(alignment : &Alignment, begin : usize, end : usize) -> i32 {
-        println!("[{}, {}]", begin, end - 1);
-        let indel_string : String = vec!['-'; end - begin].iter().collect();
-        println!("indel_string : {}", indel_string);
+    fn segment_cardinality(alignment : &Alignment, interval : Interval) -> usize {
+        println!("[{}, {}]", interval.begin, interval.end);
+        let indel_string : String = vec!['-'; interval.end - interval.begin + 1].iter().collect();
         let mut subsequences : Vec<String> = Vec::new();
-        for i in 0..alignment.0.len() {
-            let sub_as_string = String::from_utf8(alignment.0[i].seq[begin..end].to_vec()).unwrap();
+        for seq in alignment.sequences() {
+            let sub_as_string = String::from_utf8(seq.seq[interval.begin..=interval.end].to_vec()).unwrap();
             if sub_as_string != indel_string && !subsequences.contains(&sub_as_string) {
                 subsequences.push(sub_as_string);
             }
         }
         println!("{:?}", subsequences);
-        subsequences.len() as i32
+        subsequences.len()
     }
 
-    fn greedy(threshold : usize, alignment : &Alignment) -> Vec<usize> {
-        let n = alignment.0[0].seq.len();
-        let mut begin : usize = 0;
-        let mut res : Vec<usize> = Vec::new();
+    fn greedy(alignment : &Alignment, threshold : usize) -> Vec<Interval> {
+        let n = alignment.sequences().next().unwrap().len();
+        let mut res : Vec<Interval> = Vec::new();
+        let mut interval = Interval {begin : 0, end : 0};
 
-        while begin < n {
-            let mut end = begin + 1;
-            let mut seg_car = GreedyPartitioner::segment_cardinality(alignment, begin, end);
+        while interval.begin < n {
+            let mut seg_car = GreedyPartitioner::segment_cardinality(alignment, interval);
 
-            if seg_car > threshold as i32 {
-                res.push(begin);
-                begin = end;
+            if seg_car > threshold {
+                res.push(interval);
+                interval.next();
             } else {
-                while seg_car <= threshold as i32 && end < n {
-                    end += 1;
-                    seg_car = GreedyPartitioner::segment_cardinality(alignment, begin, end)
+                while seg_car <= threshold && interval.end < n {
+                    interval.end += 1;
+                    if interval.end < n {
+                        seg_car = GreedyPartitioner::segment_cardinality(alignment, interval);
+                    }
                 }
-                res.push(end - 2);
-                if end - begin == 1 {
-                    begin = end;
-                } else {
-                    begin = end - 1;
-                }
+
+                interval.end -= 1;
+                res.push(interval);
+
+                interval.next();
             }
-            println!("res : {:?}", res)
         }
 
         res.reverse();
 
         res
-        
     }
-
-    /*fn trace_back(mut dyn_prog : Vec<Cell>) -> Vec<usize> {
-        let mut res = Vec::new();
-    
-        while let Some(cell) = dyn_prog.pop() {
-            res.push(cell.prev);
-        }
-        
-        //res.push(0);
-
-        res
-    }*/
-
 }
