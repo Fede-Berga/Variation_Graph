@@ -1,10 +1,14 @@
+#[allow(unused_imports)]
 use crate::maf_paser::{
     Alignment,
 };
+#[allow(unused_imports)]
 use crate::partitioner::{
     GreedyPartitioner,
+    Partitioner,
     Interval
 };
+#[allow(unused_imports)]
 use handlegraph::{
     handle::{Direction, Edge, Handle},
     handlegraph::*,
@@ -15,7 +19,6 @@ use handlegraph::{
     pathhandlegraph::*,
 };
 //fix getpossiblepath
-//modify build
 
 const INDEL : u8 = '-' as u8;
 
@@ -180,7 +183,7 @@ impl VariationGraph {
             path.push(p);
         }
 
-        println!("partition : {:?}", partition);
+        //println!("partition : {:?}", partition);
     
         (vg, path, prev_handle, partition, first_handle)
     }  

@@ -1,12 +1,13 @@
+#[allow(unused_imports)]
 use variation_graph::{
-    maf_paser::{Parser, MafParser},
+    maf_paser::*,
     variation_graph:: {VariationGraph},
 };
 
 fn main() {
-    let alignment = MafParser::get_alignment("./dataset/test_2.maf").unwrap();
+    let alignment = FastaParser::get_alignment("../dataset/out.fa").unwrap();
 
-    //let part = GreedyPartitioner::new(&alignment, 1);
+    //let part = Partitioner::new(&alignment, 2);
 
     //println!("part : {:?}", part);
     
@@ -25,6 +26,6 @@ fn main() {
         }
     }
 
-    graph.print_graph();
+    //graph.print_graph();
     println!("paths : {}", graph.get_possible_paths());
 }
