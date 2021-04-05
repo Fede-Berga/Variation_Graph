@@ -10,7 +10,7 @@ use crate::partitioner::{
 };
 #[allow(unused_imports)]
 use handlegraph::{
-    handle::{Direction, Edge, Handle},
+    handle::{Direction, Edge, Handle, NodeId},
     handlegraph::*,
     hashgraph::{
         HashGraph,
@@ -65,22 +65,45 @@ impl VariationGraph {
     }
 
     pub fn get_possible_paths(&self) -> usize {
-        self.get_possible_paths_helper(self.first_node)
+        //let outgoing_edges = self.graph.neighbors(self.last_node, Direction::Right).count();
+        //println!("out : {}", outgoing_edges);
+        let mut reps = Vec::new();
+        self.get_possible_paths_helper(self.first_node, &mut reps)
     }
 
-    fn get_possible_paths_helper(&self, handle : Handle) -> usize {
+    fn get_possible_paths_helper(&self, handle : Handle, reps : &mut Vec<NodeId>) -> usize {
+        //println!("handle : {}", handle.id());
+        //println!("first_handle : {}", self.first_node.id());
+        //println!("last_handle : {}", self.last_node.id());
+        if reps.contains(&handle.id()) {
+            println!("loop : {}", handle.id());
+        } else {
+            reps.push(handle.id());
+        }
+
         let outgoing_edges = self.graph.neighbors(handle, Direction::Right).count();
 
         if outgoing_edges == 0 {
+            //println!("handle : {}", handle.id());
+            //println!("first_handle : {}", self.first_node.id());
+            //println!("last_handle : {}", self.last_node.id());
+            //println!("reps : {:?}", reps);
             return 1 as usize;
         }
 
         let mut count = 0;
         for node in self.graph.neighbors(handle, Direction::Right) {
-            count += self.get_possible_paths_helper(node);
+            let mut vec = reps.clone();
+            count += self.get_possible_paths_helper(node, &mut vec);
         }
 
+        //println!("count : {}", count);
+
         return count;
+    }
+
+    pub fn lable_len_sum(&self) -> usize {
+        self.graph.handles().map(|handle| self.graph.get_node_unchecked(&handle.id()).sequence.len()).sum()
     }
 
     ///Prints the graph's topology

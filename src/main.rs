@@ -5,7 +5,7 @@ use variation_graph::{
 };
 
 fn main() {
-    let alignment = FastaParser::get_alignment("../dataset/out.fa").unwrap();
+    let alignment = FastaParser::get_alignment("../dataset/ENSG00000000419.13.aligned").unwrap();
 
     //let part = Partitioner::new(&alignment, 2);
 
@@ -27,5 +27,6 @@ fn main() {
     }
 
     //graph.print_graph();
+    println!("sum labels len : {}", graph.lable_len_sum());
     println!("paths : {}", graph.get_possible_paths());
 }
