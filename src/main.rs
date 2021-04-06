@@ -9,7 +9,7 @@ fn main() {
 
     //let part = Partitioner::new(&alignment, 2);
 
-    //println!("part : {:?}", part);
+    println!("part : {:?}", part);
     
     //println!("al : {}", alignment);
 
