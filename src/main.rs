@@ -5,7 +5,7 @@ use variation_graph::{
 };
 
 fn main() {
-    let alignment = FastaParser::get_alignment("../dataset/ENSG00000000419.13.aligned").unwrap();
+    let alignment = MafParser::get_alignment("./dataset/test_3.maf").unwrap();
 
     //let part = Partitioner::new(&alignment, 2);
 
@@ -14,7 +14,7 @@ fn main() {
     //println!("al : {}", alignment);
 
     for elem in alignment.sequences() {
-        println!("Seq : {}", elem);
+        //println!("Seq : {}", elem);
     }
 
     let graph = VariationGraph::new(&alignment, 1 as usize).unwrap();
