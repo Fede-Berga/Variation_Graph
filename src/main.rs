@@ -4,16 +4,17 @@ use variation_graph::{
     partitioner::*,
     variation_graph:: {VariationGraph},
 };
-
+//../dataset/ENSG00000000005.6.aligned.fa
+//../dataset/ENSG00000000419.13.aligned.fa
 fn main() {
-    let alignment = MafParser::get_alignment("./dataset/test_1.maf").unwrap();
+    let alignment = FastaParser::get_alignment("../dataset/ENSG00000000419.13.aligned.fa").unwrap();
 
     let part = GreedyPartitioner::new(&alignment, 1);
 
     println!("part : {:?}", part);
     
     //println!("al : {}", alignment);
-
+    
     for elem in alignment.sequences() {
         println!("Seq : {}", elem);
     }
@@ -26,6 +27,9 @@ fn main() {
             _ => {},
         }
     }
+
+    println!("max : {}", usize::MAX);
+    //println!("BITS : {}", usize::BITS);
 
     graph.print_graph();
     println!("sum labels len : {}", graph.label_len_sum());
