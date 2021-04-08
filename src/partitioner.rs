@@ -147,8 +147,16 @@ impl GreedyPartitioner {
             let mut seg_car = GreedyPartitioner::segment_cardinality(alignment, interval);
 
             if seg_car > threshold {
-                res.push(interval);
-                interval.next();
+                let mut curr_car = seg_car;
+                let begin = interval.begin;
+                while curr_car == seg_car && interval.end < n {
+                    interval.begin += 1;
+                    interval.end = interval.begin;
+                    if interval.end < n {
+                        curr_car = GreedyPartitioner::segment_cardinality(alignment, interval);
+                    }
+                }
+                interval.begin = begin;
             } else {
                 while seg_car <= threshold && interval.end < n {
                     interval.end += 1;
@@ -156,13 +164,14 @@ impl GreedyPartitioner {
                         seg_car = GreedyPartitioner::segment_cardinality(alignment, interval);
                     }
                 }
-
-                interval.end -= 1;
-                res.push(interval);
-
-                interval.next();
             }
+
+            interval.end -= 1;
+            res.push(interval);
+
+            interval.next();
         }
+        
         res
     }
 }

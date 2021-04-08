@@ -65,31 +65,14 @@ impl VariationGraph {
     }
 
     pub fn get_possible_paths(&self) -> usize {
-        //let outgoing_edges = self.graph.neighbors(self.last_node, Direction::Right).count();
-        //println!("out : {}", outgoing_edges);
-        //let mut prev : Vec<String> = Vec::new();
-        //let mut tot : Vec<String> = Vec::new();
         let mut occ : Vec<usize> = vec![0; self.graph.handles().count() + 1];
-        self.get_possible_paths_helper(self.first_node, /*&mut prev, &mut tot,*/ &mut occ);
-        /*for path in tot.iter() {
-            let k = tot.iter().filter(|&elem| elem == path).count();
-            print!("{}", k);
-        }
-        println!(" {}", tot.len());*/
+        self.get_possible_paths_helper(self.first_node, &mut occ);
         occ[1]
     }
 
-    fn get_possible_paths_helper(&self, handle : Handle, /*prev : &mut Vec<String>, tot : &mut Vec<String>,*/ occ : &mut Vec<usize>) {
+    fn get_possible_paths_helper(&self, handle : Handle, occ : &mut Vec<usize>) {
         let outgoing_edges = self.graph.neighbors(handle, Direction::Right).count();
-
-        //occ[u64::from(handle.id()) as usize] += 1;
-
-        //if occ.last().unwrap() % 1000000 == 0 {
-            println!("occ : {:?}", occ);
-        //}
-
-        //prev.push(self.graph.get_node_unchecked(&handle.id()).sequence.iter().map(|&c| c as char).collect::<String>().to_string());
-            
+    
         if outgoing_edges == 0 {
             occ[u64::from(handle.id()) as usize] = 1;
             return;
@@ -97,17 +80,14 @@ impl VariationGraph {
 
         let mut count = 0;
         for node in self.graph.neighbors(handle, Direction::Right) {
-            //let mut prev_copy = prev.clone();
             if occ[u64::from(node.id()) as usize] == 0 {
-                self.get_possible_paths_helper(node, /*&mut prev_copy, tot,*/ occ);
+                self.get_possible_paths_helper(node, occ);
             }
 
             count += occ[u64::from(node.id()) as usize];
         }
 
         occ[u64::from(handle.id()) as usize] = count;
-
-        println!("occ : {:?}", occ);
 
         return;
     }
