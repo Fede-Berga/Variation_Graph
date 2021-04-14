@@ -18,9 +18,12 @@ use handlegraph::{
     mutablehandlegraph::*,
     pathhandlegraph::*,
 };
-//fix getpossiblepath
 
-const INDEL : u8 = '-' as u8;
+use crate::INDEL;
+
+//const INDEL : u8 = '-' as u8;
+const FIST_NODE_LABEL : &[u8] = b"first_node";
+const LAST_NODE_LABEL : &[u8] = b"last_node";
 
 ///Represents a variation graph
 #[derive(Debug)]
@@ -83,7 +86,6 @@ impl VariationGraph {
             if occ[u64::from(node.id()) as usize] == 0 {
                 self.get_possible_paths_helper(node, occ);
             }
-
             count += occ[u64::from(node.id()) as usize];
         }
 
@@ -93,7 +95,7 @@ impl VariationGraph {
     }
 
     pub fn label_len_sum(&self) -> usize {
-        self.graph.handles().map(|handle| self.graph.get_node_unchecked(&handle.id()).sequence.len()).sum()
+        self.graph.handles().map(|handle| self.graph.get_node_unchecked(&handle.id()).sequence.len()).sum::<usize>() - FIST_NODE_LABEL.len() - LAST_NODE_LABEL.len()
     }
 
     ///Prints the graph's topology
@@ -173,7 +175,7 @@ impl VariationGraph {
         }*/
 
         //Epilogue
-        let last_node = vg.append_handle(b"Last_node");
+        let last_node = vg.append_handle(LAST_NODE_LABEL);
 
         for (i, handle) in prev_handle.into_iter().enumerate() {
             vg.create_edge(Edge(handle, last_node));
@@ -187,7 +189,7 @@ impl VariationGraph {
         let mut vg = HashGraph::new();
         let mut path = Vec::new();
         let partition = GreedyPartitioner::new(alignment, threshold);
-        let first_handle = vg.append_handle(b"First_node");
+        let first_handle = vg.append_handle(FIST_NODE_LABEL);
         let prev_handle = vec![first_handle; alignment.0.len()];
     
         for seq in alignment.0.iter() {
