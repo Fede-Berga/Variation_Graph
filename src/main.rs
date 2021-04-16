@@ -7,8 +7,13 @@ use variation_graph::{
 //../dataset/ENSG00000000005.6.aligned.fa
 //../dataset/ENSG00000000419.13.aligned.fa
 //../dataset/ENSG00000000457.14.aligned.fa
+//../dataset/ENSG00000000460.17.aligned.fa
 fn main() {
-    let alignment = FastaParser::get_alignment("../dataset/ENSG00000000457.14.aligned.fa").unwrap();
+    let alignment = FastaParser::get_alignment("../dataset/ENSG00000000460.17.aligned.fa").unwrap();
+
+    alignment.dump_on_file("./dataset/ENSG00000000460.17.aligned.txt");
+
+    //let alignment = MafParser::get_alignment("./dataset/one_al_block.maf").unwrap();
 
     //let part = GreedyPartitioner::new(&alignment, 1);
 
@@ -16,7 +21,7 @@ fn main() {
     
     //println!("al : {}", alignment);
     
-    for elem in alignment.sequences() {
+    /*for elem in alignment.sequences() {
         println!("Seq : {}", elem);
     }
 
@@ -31,6 +36,6 @@ fn main() {
 
     //graph.print_graph();
     println!("sum labels len : {}", graph.label_len_sum());
-    println!("paths : {}", graph.get_possible_paths());
+    println!("paths : {}", graph.get_possible_paths());*/
 }
 

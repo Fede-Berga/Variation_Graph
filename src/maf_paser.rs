@@ -14,6 +14,9 @@ pub enum ParserError {
     AlignmentBlockNotFound(String),
     FastaParserError(String)
 }
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
 
 /// Represents a multiple sequence alignment 
 #[derive(Debug, PartialEq, Eq)]
@@ -54,6 +57,39 @@ impl Alignment {
 
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    pub fn dump_on_file(&self, file_name : &str) {
+        let max_name_len = self.sequences().map(|sequence| sequence.name.len()).max().unwrap();
+
+        let path = Path::new(file_name);
+
+        let mut file = match File::create(&path) {
+                Err(why) => panic!("couldn't create {}: {}", path.display(), why),
+                Ok(file) => file,
+        };
+
+        for sequence in self.sequences() {
+            match file.write_all(sequence.name.as_bytes()) {
+                Err(why) => panic!("couldn't write NAME to {}: {}", path.display(), why),
+                Ok(_) => {}, //println!("successfully wrote to {}", path.display()),
+            }
+
+            match file.write_all(&vec![' ' as u8; max_name_len - sequence.name.len() + 1]) {
+                Err(why) => panic!("couldn't write SPACES to {}: {}", path.display(), why),
+                Ok(_) => {}, //println!("successfully wrote to {}", path.display()),
+            }
+
+            match file.write_all(&sequence.seq) {
+                Err(why) => panic!("couldn't write SEQUENCE to {}: {}", path.display(), why),
+                Ok(_) => {}, //println!("successfully wrote to {}", path.display()),
+            }
+
+            match file.write_all("\n".as_bytes()) {
+                Err(why) => panic!("couldn't write ENDLINE to {}: {}", path.display(), why),
+                Ok(_) => {}, //println!("successfully wrote to {}", path.display()),
+            }
+        }
     }
 }
 
