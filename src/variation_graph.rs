@@ -125,7 +125,9 @@ impl VariationGraph {
             }
 
             for subsequence in segment {
-                let handle = vg.append_handle(&subsequence[..]);
+                let mut label : Vec<u8> = subsequence.clone();
+                label.append(&mut format!("  [{} - {}]", interval.begin, interval.end).as_bytes().to_vec());
+                let handle = vg.append_handle(&label[..]);
                 for (i, sequence) in alignment.sequences().enumerate() {
                     let clean_sequence : Vec<u8> = sequence.seq[interval.begin..=interval.end].iter().filter(|&&ch| ch != INDEL).map(|&ch| ch).collect();
                     if clean_sequence == subsequence {
