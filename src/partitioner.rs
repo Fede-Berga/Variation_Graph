@@ -2,11 +2,19 @@ use crate::maf_paser::Alignment;
 use std::cmp;
 use crate::INDEL;
 
-
 #[derive(Clone, Debug)]
 pub struct Cell {
     payload : usize,
     prev : usize,
+}
+
+#[derive(Debug)]
+pub struct Partition(Vec<Interval>);
+
+impl Partition {
+    pub fn intervals(&self) -> std::slice::Iter<'_, Interval> {
+        self.0.iter()
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -23,13 +31,13 @@ impl Interval {
 }
 
 pub trait Partitioner {
-    fn new(alignment : &Alignment, threshold : usize) -> Vec<Interval>;
+    fn new(alignment : &Alignment, threshold : usize) -> Partition;
 }
 
 pub struct DynProgPartitioner;
 
 impl Partitioner for DynProgPartitioner {
-    fn new(alignment : &Alignment, threshold : usize) -> Vec<Interval> {
+    fn new(alignment : &Alignment, threshold : usize) -> Partition {
         let mut dyn_prog : Vec<Cell> = vec![Cell{payload : 0, prev : 0}; threshold - 1];
     
         //Base Case
@@ -47,7 +55,7 @@ impl Partitioner for DynProgPartitioner {
     
         //println!("bounds : {:?}", tb);
 
-        tb
+        Partition(tb)
     }
 }
 
@@ -117,8 +125,8 @@ impl DynProgPartitioner {
 pub struct GreedyPartitioner;
 
 impl Partitioner for GreedyPartitioner {
-    fn new(alignment : &Alignment, threshold : usize) -> Vec<Interval> {
-        GreedyPartitioner::greedy(alignment, threshold)
+    fn new(alignment : &Alignment, threshold : usize) -> Partition {
+        Partition(GreedyPartitioner::greedy(alignment, threshold))
     }
 }
 

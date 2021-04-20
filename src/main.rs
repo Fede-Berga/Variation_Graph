@@ -9,13 +9,17 @@ use variation_graph::{
 //../dataset/ENSG00000000457.14.aligned.fa
 //../dataset/ENSG00000000460.17.aligned.fa
 fn main() {
-    //let alignment = FastaParser::get_alignment("../dataset/ENSG00000000460.17.aligned.fa").unwrap();
+    let input_file_name = "../dataset/ENSG00000000419.13.aligned.fa";
 
-    let alignment = MafParser::get_alignment("./dataset/test_1.maf").unwrap();
+    let alignment = FastaParser::get_alignment(input_file_name).unwrap();
 
-    //alignment.dump_on_file("./dataset/ENSG00000000460.17.aligned.txt");
+    //let alignment = MafParser::get_alignment("./dataset/test_1.maf").unwrap();
 
-    //let part = GreedyPartitioner::new(&alignment, 1);
+    let output_file_name = "./dataset/ENSG00000000419.13.aligned.txt";
+
+    let part = GreedyPartitioner::new(&alignment, 1);
+
+    alignment.dump_on_file(output_file_name, &part);
 
     //println!("part : {:?}", part);
     

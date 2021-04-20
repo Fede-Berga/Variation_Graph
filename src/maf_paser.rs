@@ -4,6 +4,10 @@ use multiple_alignment_format::{
     MAFBlock,
     parser::next_maf_item,
 };
+use crate::partitioner::{
+    Interval,
+    Partition,
+};
 use std::fmt;
 use bio::io::fasta;
 use std::fs;
@@ -59,7 +63,7 @@ impl Alignment {
         self.0.len()
     }
 
-    pub fn dump_on_file(&self, file_name : &str) {
+    pub fn dump_on_file(&self, file_name : &str, partition : &Partition) {
         let max_name_len = self.sequences().map(|sequence| sequence.name.len()).max().unwrap();
 
         let path = Path::new(file_name);
@@ -72,22 +76,31 @@ impl Alignment {
         for sequence in self.sequences() {
             match file.write_all(sequence.name.as_bytes()) {
                 Err(why) => panic!("couldn't write NAME to {}: {}", path.display(), why),
-                Ok(_) => {}, //println!("successfully wrote to {}", path.display()),
+                Ok(_) => {},
             }
 
             match file.write_all(&vec![' ' as u8; max_name_len - sequence.name.len() + 1]) {
                 Err(why) => panic!("couldn't write SPACES to {}: {}", path.display(), why),
-                Ok(_) => {}, //println!("successfully wrote to {}", path.display()),
+                Ok(_) => {},
             }
 
-            match file.write_all(&sequence.seq) {
-                Err(why) => panic!("couldn't write SEQUENCE to {}: {}", path.display(), why),
-                Ok(_) => {}, //println!("successfully wrote to {}", path.display()),
+            for interval in partition.intervals() {
+                match file.write_all(&sequence.seq[interval.begin..=interval.end]) {
+                    Err(why) => panic!("couldn't write SEQUENCE to {}: {}", path.display(), why),
+                    Ok(_) => {},
+                }
+
+                if interval.end != sequence.len() - 1 {
+                    match file.write_all(" | ".as_bytes()) {
+                        Err(why) => panic!("couldn't write SEQUENCE to {}: {}", path.display(), why),
+                        Ok(_) => {},
+                    }
+                }  
             }
 
             match file.write_all("\n".as_bytes()) {
                 Err(why) => panic!("couldn't write ENDLINE to {}: {}", path.display(), why),
-                Ok(_) => {}, //println!("successfully wrote to {}", path.display()),
+                Ok(_) => {}, 
             }
         }
     }
