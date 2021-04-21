@@ -30,32 +30,39 @@ impl Interval {
     }
 }
 
+#[derive(Debug)]
+pub enum PartitionerError {
+    InvalidThreshold
+}
+
 pub trait Partitioner {
-    fn new(alignment : &Alignment, threshold : usize) -> Partition;
+    fn new(alignment : &Alignment, threshold : usize) -> Result<Partition, PartitionerError>;
 }
 
 pub struct DynProgPartitioner;
 
 impl Partitioner for DynProgPartitioner {
-    fn new(alignment : &Alignment, threshold : usize) -> Partition {
+    fn new(alignment : &Alignment, threshold : usize) -> Result<Partition, PartitionerError> {
+        let upper_bound = alignment.sequences().next().unwrap().len();
+
+        if threshold > upper_bound {
+            return Err(PartitionerError::InvalidThreshold);
+        }
+
         let mut dyn_prog : Vec<Cell> = vec![Cell{payload : 0, prev : 0}; threshold - 1];
-    
+        
         //Base Case
-        //println!("Base case : ");
         let interval = Interval {begin : 0, end : threshold - 1};
         let base_case = segment_cardinality(alignment, interval);
         dyn_prog.push(Cell{payload : base_case, prev : 0});
     
         //Recursion
         DynProgPartitioner::recursion(threshold, alignment, &mut dyn_prog);
-    
-        //println!("dyn_prog : {:#?}", dyn_prog);
-    
+     
+        //TraceBack
         let tb = DynProgPartitioner::trace_back(dyn_prog);
-    
-        //println!("bounds : {:?}", tb);
 
-        Partition(tb)
+        Ok(Partition(tb))
     }
 }
 
@@ -63,7 +70,6 @@ impl DynProgPartitioner {
     fn trace_back(dyn_prog : Vec<Cell>) -> Vec<Interval> {
         let mut current = &dyn_prog[dyn_prog.len() - 1];
         let mut res = Vec::new();
-        //println!("n : {}", dyn_prog.len());
         let mut interval = Interval {begin : current.prev + 1, end : dyn_prog.len() - 1};
     
         while current.prev != 0 {
@@ -125,8 +131,12 @@ impl DynProgPartitioner {
 pub struct GreedyPartitioner;
 
 impl Partitioner for GreedyPartitioner {
-    fn new(alignment : &Alignment, threshold : usize) -> Partition {
-        Partition(GreedyPartitioner::greedy(alignment, threshold))
+    fn new(alignment : &Alignment, threshold : usize) -> Result<Partition, PartitionerError> {
+        if threshold > alignment.sequences().len() {
+            Err(PartitionerError::InvalidThreshold)
+        } else {
+            Ok(Partition(GreedyPartitioner::greedy(alignment, threshold)))
+        }
     }
 }
 

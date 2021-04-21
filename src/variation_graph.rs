@@ -36,24 +36,14 @@ pub struct VariationGraph {
 
 #[derive(Debug)]
 pub enum VariationGraphError {
-    InvalidThreshold(String),
-    PathNotFound(String),
+    PathNotFound
 }
 
 impl VariationGraph {
     ///Builds a variation graph given an Alignment
-    pub fn new(alignment : &Alignment, threshold : usize) -> Result<VariationGraph, VariationGraphError> {
-        let upper_bound = alignment.0[0].seq.len();
-        if threshold > 0 && threshold < upper_bound{
-            let (vg, first_node, last_node) = VariationGraph::build_vg(&alignment, threshold);
-            Ok(VariationGraph {graph : vg, first_node : first_node, last_node : last_node})
-        } else {
-            Err(
-                VariationGraphError::InvalidThreshold(
-                    format!("threshold : {} not valid, must be [1, {}]", threshold, upper_bound)
-                )
-            )
-        }
+    pub fn new(alignment : &Alignment, partition : &Partition) -> VariationGraph {
+        let (vg, first_node, last_node) = VariationGraph::build_vg(alignment, partition);
+        VariationGraph {graph : vg, first_node : first_node, last_node : last_node}
     }
 
     ///Prints the path corrisponding to 'path_name'
@@ -64,7 +54,7 @@ impl VariationGraph {
                 self.graph.print_path(path);
                 Ok(())
             },
-            _ => Err(VariationGraphError::PathNotFound(format!("Path \"{}\" does not exist", path_name))),
+            _ => Err(VariationGraphError::PathNotFound),
         }
     }
 
@@ -91,8 +81,6 @@ impl VariationGraph {
         }
 
         occ[u64::from(handle.id()) as usize] = count;
-
-        return;
     }
 
     pub fn label_len_sum(&self) -> usize {
@@ -111,9 +99,9 @@ impl VariationGraph {
         }
     }
 
-    fn build_vg(alignment : &Alignment, threshold : usize) -> (HashGraph, Handle, Handle) {
+    fn build_vg(alignment : &Alignment, partition : &Partition) -> (HashGraph, Handle, Handle) {
         //init
-        let (mut vg, path, mut prev_handle, partition, first_node) = VariationGraph::init(alignment, threshold);
+        let (mut vg, path, mut prev_handle, first_node) = VariationGraph::init(alignment);
 
         for interval in partition.intervals() {
             let mut segment = Vec::new();
@@ -129,6 +117,7 @@ impl VariationGraph {
                 let mut label : Vec<u8> = subsequence.clone();
                 label.append(&mut format!("  [{} - {}]", interval.begin, interval.end).as_bytes().to_vec());
                 let handle = vg.append_handle(&label[..]);
+                //let handle = vg.append_handle(&subsequence[..]);
                 for (i, sequence) in alignment.sequences().enumerate() {
                     let clean_sequence : Vec<u8> = sequence.seq[interval.begin..=interval.end].iter().filter(|&&ch| ch != INDEL).map(|&ch| ch).collect();
                     if clean_sequence == subsequence {
@@ -151,21 +140,18 @@ impl VariationGraph {
         (vg, first_node, last_node)
     }
 
-    fn init(alignment : &Alignment, threshold : usize) -> (HashGraph, Vec<PathId> , Vec<Handle>, Partition, Handle) {
+    fn init(alignment : &Alignment) -> (HashGraph, Vec<PathId> , Vec<Handle>, Handle) {
         let mut vg = HashGraph::new();
         let mut path = Vec::new();
-        let partition = GreedyPartitioner::new(alignment, threshold);
         let first_handle = vg.append_handle(FIST_NODE_LABEL);
-        let prev_handle = vec![first_handle; alignment.0.len()];
+        let prev_handle = vec![first_handle; alignment.sequences().len()];
     
-        for seq in alignment.0.iter() {
+        for seq in alignment.sequences() {
             let p = vg.create_path(seq.name.as_bytes(), false).unwrap();
             vg.path_append_step(p, first_handle);
             path.push(p);
         }
-
-        //println!("partition : {:?}", partition);
     
-        (vg, path, prev_handle, partition, first_handle)
+        (vg, path, prev_handle, first_handle)
     }  
 }

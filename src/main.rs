@@ -17,9 +17,9 @@ fn main() {
 
     let output_file_name = "./dataset/ENSG00000000419.13.aligned.txt";
 
-    let part = GreedyPartitioner::new(&alignment, 1);
+    let partition = <GreedyPartitioner as Partitioner>::new(&alignment, 1).unwrap();
 
-    alignment.dump_on_file(output_file_name, &part);
+    alignment.dump_on_file(output_file_name, &partition);
 
     //println!("part : {:?}", part);
     
@@ -29,7 +29,7 @@ fn main() {
         println!("Seq : {}", elem);
     }
 
-    let graph = VariationGraph::new(&alignment, 1).unwrap();
+    let graph = VariationGraph::new(&alignment, &partition);
 
     for seq in alignment.0.iter() {
         match graph.print_path(&seq.name) {
