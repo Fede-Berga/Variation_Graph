@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use crate::maf_paser::{
+use crate::parser::{
     Alignment,
 };
 #[allow(unused_imports)]

@@ -2,27 +2,25 @@
 //cargo test [test_name] -- --nocapture
 
 use variation_graph::{
-    maf_paser::{Alignment, ParserError},
-    variation_graph:: {VariationGraph, VariationGraphError},
+    parser::*,
+    partitioner::*,
+    variation_graph::{VariationGraph, VariationGraphError},
 };
 
-enum TestError {
-    ErrorWhileParsing(ParserError),
-    ErrorWhileBuildingVariationGraph(VariationGraphError),
-}
-
 fn run_test(file_name : &str) -> Result<(), String>{
-    let alignment = match Alignment::new(file_name){
+    let alignment = match MafParser::get_alignment(file_name){
         Ok(al) => al,
         Err(e) => return Err(format!("{:?}", e)),
     };
 
-    let graph = match VariationGraph::new(&alignment, 1 as usize){
-        Ok(vg) => vg,
+    let partition = match <GreedyPartitioner as Partitioner>::new(&alignment, 1 as usize){
+        Ok(partition) => partition,
         Err(e) => return Err(format!("{:?}", e)),
     };
 
-    let path : Vec<_> = alignment.0.iter().map(|seq| seq.name.clone()).collect();
+    let graph = VariationGraph::new(&alignment, &partition);
+
+    let path : Vec<_> = alignment.sequences().map(|seq| seq.name.clone()).collect();
 
     println!("Sequences : {:?} \n", path);
 
@@ -39,8 +37,6 @@ fn run_test(file_name : &str) -> Result<(), String>{
 
     Ok(())
 }
-
-//TODO Udate tests!!!
 
 #[test]
 fn file_not_found() {

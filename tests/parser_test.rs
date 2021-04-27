@@ -1,33 +1,36 @@
-use variation_graph::{
-    maf_paser::Alignment,
-    maf_paser::Sequence,
-    maf_paser::ParserError,
+use variation_graph::parser::{
+    Alignment,
+    Sequence,
+    ParserError,
+    Parser,
+    FastaParser,
+    MafParser,
 };
 
 #[test]
 fn parse_file_not_found() {
-    let al = Alignment::new("./dataset/file_not_found.maf");
+    let al = MafParser::get_alignment("./dataset/file_not_found.maf");
     let expected : Result<Alignment, ParserError> = Err(ParserError::FileNotFound(String::from("Error in file reading")));
     assert_eq!(al, expected);
 }
 
 #[test]
 fn parse_emply_file() {
-    let al = Alignment::new("./dataset/empty.maf");
+    let al =  MafParser::get_alignment("./dataset/empty.maf");
     let expected : Result<Alignment, ParserError> = Err(ParserError::AlignmentBlockNotFound(String::from("Alignment block not found")));
     assert_eq!(al, expected);
 }
 
 #[test]
 fn parse_file_no_alignment_block() {
-    let al : Result<Alignment, ParserError> = Alignment::new("./dataset/no_alignment_block.maf");
+    let al : Result<Alignment, ParserError> =  MafParser::get_alignment("./dataset/no_alignment_block.maf");
     let expected : Result<Alignment, ParserError> = Err(ParserError::AlignmentBlockNotFound(String::from("Alignment block not found")));
     assert_eq!(al, expected);
 }
 
 #[test]
 fn parse_file_one_alignment_block() {
-    let al = Alignment::new("./dataset/one_al_block.maf").unwrap();
+    let al = MafParser::get_alignment("./dataset/one_al_block.maf").unwrap();
     let expected : Vec<Sequence> = 
     vec![
         Sequence {
@@ -51,12 +54,13 @@ fn parse_file_one_alignment_block() {
             seq : vec![45, 65, 65, 45, 71, 71, 71, 71, 65, 84, 71, 67, 84, 65, 65, 71, 67, 67, 65, 65, 84, 71, 65, 71, 84, 84, 71, 84, 84, 71, 84, 67, 84, 67, 84, 67, 65, 65, 84, 71, 84, 71],
         }
     ];
-    assert_eq!(al.0, expected);
+    let compare : Vec<_>= al.sequences().map(|seq| seq.clone()).collect();
+    assert_eq!(compare, expected);
 }
 
 #[test]
 fn parse_file_one_alignment_block_with_info_lines() {
-    let al = Alignment::new("./dataset/one_al_block_with_info.maf").unwrap();
+    let al = MafParser::get_alignment("./dataset/one_al_block_with_info.maf").unwrap();
     let expected : Vec<Sequence> = 
     vec![
         Sequence {
@@ -72,12 +76,13 @@ fn parse_file_one_alignment_block_with_info_lines() {
             seq : vec![71, 67, 65, 71, 67, 84, 71, 65, 65, 65, 65, 67, 65],
         }
     ];
-    assert_eq!(al.0, expected);
+    let compare : Vec<_>= al.sequences().map(|seq| seq.clone()).collect();
+    assert_eq!(compare, expected);
 }
 
 #[test]
 fn parse_file_mul_alignment() {
-    let al = Alignment::new("./dataset/mul_al_block.maf").unwrap();
+    let al = MafParser::get_alignment("./dataset/mul_al_block.maf").unwrap();
     let expected : Vec<Sequence> = 
     vec![
         Sequence {
@@ -101,12 +106,13 @@ fn parse_file_mul_alignment() {
             seq : vec![45, 65, 65, 45, 71, 71, 71, 71, 65, 84, 71, 67, 84, 65, 65, 71, 67, 67, 65, 65, 84, 71, 65, 71, 84, 84, 71, 84, 84, 71, 84, 67, 84, 67, 84, 67, 65, 65, 84, 71, 84, 71],
         }
     ];
-    assert_eq!(al.0, expected);
+    let compare : Vec<_>= al.sequences().map(|seq| seq.clone()).collect();
+    assert_eq!(compare, expected);
 }
 
 #[test]
 fn parse_file_upper_case() {
-    let al = Alignment::new("./dataset/test_3.maf").unwrap();
+    let al = MafParser::get_alignment("./dataset/test_3.maf").unwrap();
     let expected : Vec<Sequence> = 
     vec![
         Sequence {
@@ -130,7 +136,8 @@ fn parse_file_upper_case() {
             seq : vec![84, 65, 65, 71, 71, 65],
         }
     ];
-    assert_eq!(al.0, expected);
+    let compare : Vec<_>= al.sequences().map(|seq| seq.clone()).collect();
+    assert_eq!(compare, expected);
 }
 
 

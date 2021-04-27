@@ -24,10 +24,10 @@ use std::path::Path;
 
 /// Represents a multiple sequence alignment 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Alignment(pub Vec<Sequence>);
+pub struct Alignment(Vec<Sequence>);
 
 /// Represents an aligned sequence
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Sequence {
     /// Sequence name
     pub name : String,
@@ -35,6 +35,7 @@ pub struct Sequence {
     pub seq : Vec<u8>,
 }
 
+/// Display for Alignment
 impl fmt::Display for Alignment {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for seq in self.sequences() {
@@ -44,6 +45,7 @@ impl fmt::Display for Alignment {
     }
 }
 
+// Display for Sequence
 impl fmt::Display for Sequence {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} : [", self.name)?;
@@ -55,14 +57,17 @@ impl fmt::Display for Sequence {
 }
 
 impl Alignment {
+    // Return an iterator for the sequences in the alignment
     pub fn sequences(&self) -> std::slice::Iter<'_, Sequence> {
         self.0.iter()
     }
 
+    /// Return the length of this
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
+    /// Write an Alignment on file
     pub fn dump_on_file(&self, file_name : &str, partition : &Partition) {
         let max_name_len = self.sequences().map(|sequence| sequence.name.len()).max().unwrap();
 
@@ -106,16 +111,20 @@ impl Alignment {
     }
 }
 
+/// Return the length of the sequence
 impl Sequence {
     pub fn len(&self) -> usize {
         self.seq.len()
     }
 }
 
+/// Trait for implementing a parser
 pub trait Parser {
+    /// Return the alignment conteined in file_name
     fn get_alignment(file_name : &str) -> Result<Alignment, ParserError>;
 }
 
+/// Parser for Fasta files
 pub struct FastaParser;
 
 impl Parser for FastaParser {
@@ -138,6 +147,7 @@ impl Parser for FastaParser {
     }
 }
 
+/// Paser for MAF files
 pub struct MafParser;
 
 impl Parser for MafParser {

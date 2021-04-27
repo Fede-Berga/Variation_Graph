@@ -1,4 +1,4 @@
-use crate::maf_paser::Alignment;
+use crate::parser::Alignment;
 use std::cmp;
 use crate::INDEL;
 

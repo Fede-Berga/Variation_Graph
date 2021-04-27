@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use variation_graph::{
-    maf_paser::*,
+    parser::*,
     partitioner::*,
     variation_graph:: {VariationGraph},
 };
@@ -20,10 +20,6 @@ fn main() {
     let partition = <GreedyPartitioner as Partitioner>::new(&alignment, 1).unwrap();
 
     alignment.dump_on_file(output_file_name, &partition);
-
-    //println!("part : {:?}", part);
-    
-    //println!("al : {}", alignment);
     
     for elem in alignment.sequences() {
         println!("Seq : {}", elem);
@@ -31,7 +27,7 @@ fn main() {
 
     let graph = VariationGraph::new(&alignment, &partition);
 
-    for seq in alignment.0.iter() {
+    for seq in alignment.sequences() {
         match graph.print_path(&seq.name) {
             Err(e) => println!("Error : {:?}", e),
             _ => {},

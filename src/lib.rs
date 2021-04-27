@@ -1,5 +1,5 @@
 //Parser Maf file
-pub mod maf_paser;
+pub mod parser;
 
 //Variation Graph Builder
 pub mod variation_graph;
