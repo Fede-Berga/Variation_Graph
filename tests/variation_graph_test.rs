@@ -2,7 +2,7 @@
 //cargo test [test_name] -- --nocapture
 
 use variation_graph::{
-    parser::*,
+    alignment_parser::*,
     partitioner::*,
     variation_graph::{VariationGraph, VariationGraphError},
 };

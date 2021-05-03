@@ -10,6 +10,8 @@ edition = "2018"
 
 handlegraph = {git = "https://github.com/chfi/rs-handlegraph"}
 
-multiple_alignment_format = {git = "https://github.com/Fede-Berga/maf_parser.git", branch = "main"}
-
 bio = "*"
+
+[dev-dependencies]
+
+maplit = "^1"

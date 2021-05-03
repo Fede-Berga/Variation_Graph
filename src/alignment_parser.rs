@@ -1,9 +1,6 @@
 extern crate bio;
-use multiple_alignment_format::{
-    MAFItem,
-    MAFBlock,
-    parser::next_maf_item,
-};
+use crate::multiple_alignment_format::parser::next_maf_item;
+use crate::multiple_alignment_format::{MAFBlock, MAFItem};
 use crate::partitioner::{
     Interval,
     Partition,
@@ -45,7 +42,7 @@ impl fmt::Display for Alignment {
     }
 }
 
-// Display for Sequence
+/// Display for Sequence
 impl fmt::Display for Sequence {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} : [", self.name)?;
@@ -57,7 +54,7 @@ impl fmt::Display for Sequence {
 }
 
 impl Alignment {
-    // Return an iterator for the sequences in the alignment
+    /// Return an iterator for the sequences in the alignment
     pub fn sequences(&self) -> std::slice::Iter<'_, Sequence> {
         self.0.iter()
     }

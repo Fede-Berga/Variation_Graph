@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use variation_graph::{
-    parser::*,
+    alignment_parser::*,
     partitioner::*,
     variation_graph:: {VariationGraph},
 };
@@ -11,11 +11,11 @@ use variation_graph::{
 fn main() {
     let input_file_name = "../dataset/ENSG00000000419.13.aligned.fa";
 
-    let alignment = FastaParser::get_alignment(input_file_name).unwrap();
+    //let alignment = FastaParser::get_alignment(input_file_name).unwrap();
 
-    //let alignment = MafParser::get_alignment("./dataset/test_1.maf").unwrap();
+    let alignment = MafParser::get_alignment("./dataset/test_1.maf").unwrap();
 
-    let output_file_name = "./dataset/ENSG00000000419.13.aligned.txt";
+    let output_file_name = "./dataset/test_1.aligned.txt";
 
     let partition = <GreedyPartitioner as Partitioner>::new(&alignment, 1).unwrap();
 

@@ -1,4 +1,4 @@
-use variation_graph::parser::{
+use variation_graph::alignment_parser::{
     Alignment,
     Sequence,
     ParserError,

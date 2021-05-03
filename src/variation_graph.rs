@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use crate::parser::{
+use crate::alignment_parser::{
     Alignment,
 };
 #[allow(unused_imports)]
@@ -40,13 +40,13 @@ pub enum VariationGraphError {
 }
 
 impl VariationGraph {
-    ///Builds a variation graph given an Alignment
+    /// Builds a variation graph given an Alignment
     pub fn new(alignment : &Alignment, partition : &Partition) -> VariationGraph {
         let (vg, first_node, last_node) = VariationGraph::build_vg(alignment, partition);
         VariationGraph {graph : vg, first_node : first_node, last_node : last_node}
     }
 
-    ///Prints the path corrisponding to 'path_name'
+    /// Prints the path corrisponding to 'path_name'
     pub fn print_path(&self, path_name : &str) -> Result<(), VariationGraphError> {
         match self.graph.path_id.get(path_name.as_bytes()) {
             Some(path) => {
@@ -58,6 +58,7 @@ impl VariationGraph {
         }
     }
 
+    // Returns the number of all the paths first_node -> last_node
     pub fn get_possible_paths(&self) -> usize {
         let mut occ : Vec<usize> = vec![0; self.graph.handles().count() + 1];
         self.get_possible_paths_helper(self.first_node, &mut occ);
@@ -83,6 +84,7 @@ impl VariationGraph {
         occ[u64::from(handle.id()) as usize] = count;
     }
 
+    /// Return the sum of the lengths of all the labels in the graph
     pub fn label_len_sum(&self) -> usize {
         self.graph.handles().map(|handle| self.graph.get_node_unchecked(&handle.id()).sequence.len()).sum::<usize>() - FIST_NODE_LABEL.len() - LAST_NODE_LABEL.len()
     }

@@ -1,4 +1,4 @@
-use crate::parser::Alignment;
+use crate::alignment_parser::Alignment;
 use std::cmp;
 use crate::INDEL;
 
