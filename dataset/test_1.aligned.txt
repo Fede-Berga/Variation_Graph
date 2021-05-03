@@ -1,5 +1,0 @@
-hg18.chr7    A | T | T | G | C | C | A | TT | --
-panTro1.chr6 A | T | G | G | C | C | A | TT | --
-baboon       A | T | C | - | C | A | A | TT | TT
-mm4.chr6     A | T | C | T | T | C | - | TT | --
-rn3.chr4     A | C | T | G | A | C | C | -- | --
