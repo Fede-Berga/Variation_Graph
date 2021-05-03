@@ -1,3 +1,3 @@
-target/
-/src/main.rs 
+target
+src/main.rs
 /dataset/*.txt
