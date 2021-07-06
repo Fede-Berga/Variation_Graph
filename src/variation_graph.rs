@@ -1,15 +1,13 @@
-#[allow(unused_imports)]
+#![allow(unused_imports)]
 use crate::alignment_parser::{
     Alignment,
 };
-#[allow(unused_imports)]
 use crate::partitioner::{
     GreedyPartitioner,
     Partitioner,
     Interval,
     Partition
 };
-#[allow(unused_imports)]
 use handlegraph::{
     handle::{Direction, Edge, Handle, NodeId},
     handlegraph::*,
@@ -40,7 +38,7 @@ pub enum VariationGraphError {
 }
 
 impl VariationGraph {
-    /// Builds a variation graph given an Alignment
+    /// Builds a variation graph given an Alignment and Partition
     pub fn new(alignment : &Alignment, partition : &Partition) -> VariationGraph {
         let (vg, first_node, last_node) = VariationGraph::build_vg(alignment, partition);
         VariationGraph {graph : vg, first_node : first_node, last_node : last_node}
@@ -58,7 +56,9 @@ impl VariationGraph {
         }
     }
 
-    // Returns the number of all the paths first_node -> last_node
+    #[allow(arithmetic_overflow)]
+    /// Returns the number of all the paths first_node -> last_node
+    /// This method might overflow
     pub fn get_possible_paths(&self) -> usize {
         let mut occ : Vec<usize> = vec![0; self.graph.handles().count() + 1];
         self.get_possible_paths_helper(self.first_node, &mut occ);
@@ -89,11 +89,11 @@ impl VariationGraph {
         self.graph.handles().map(|handle| self.graph.get_node_unchecked(&handle.id()).sequence.len()).sum::<usize>() - FIST_NODE_LABEL.len() - LAST_NODE_LABEL.len()
     }
 
-    ///Prints the graph's topology
+    /// Prints the graph's topology
     pub fn print_graph(&self) {
         for handle in self.graph.handles() {
             println!("ID : {}", handle.id());
-            println!("Value : {}", self.graph.get_node_unchecked(&handle.id()).sequence.as_slice().iter().map(|&x| x as char).collect::<String>());
+            println!("Label : {}", self.graph.get_node_unchecked(&handle.id()).sequence.as_slice().iter().map(|&x| x as char).collect::<String>());
             let left : Vec<_> = self.graph.neighbors(handle, Direction::Left).map(|h| h.id()).collect();
             let right : Vec<_> = self.graph.neighbors(handle, Direction::Right).map(|h| h.id()).collect();
             println!("Incoming edges : {:?}", left);
@@ -116,10 +116,10 @@ impl VariationGraph {
             }
 
             for subsequence in segment {
-                let mut label : Vec<u8> = subsequence.clone();
+                /*let mut label : Vec<u8> = subsequence.clone();
                 label.append(&mut format!("  [{} - {}]", interval.begin, interval.end).as_bytes().to_vec());
-                let handle = vg.append_handle(&label[..]);
-                //let handle = vg.append_handle(&subsequence[..]);
+                let handle = vg.append_handle(&label[..]);*/
+                let handle = vg.append_handle(&subsequence[..]);
                 for (i, sequence) in alignment.sequences().enumerate() {
                     let clean_sequence : Vec<u8> = sequence.seq[interval.begin..=interval.end].iter().filter(|&&ch| ch != INDEL).map(|&ch| ch).collect();
                     if clean_sequence == subsequence {

@@ -10,6 +10,7 @@ use bio::io::fasta;
 use std::fs;
 
 #[derive(Debug, Eq, PartialEq)]
+/// Errors in retriving an Alignment from a file
 pub enum ParserError {
     FileNotFound(String),
     AlignmentBlockNotFound(String),
@@ -94,7 +95,7 @@ impl Alignment {
 
                 if interval.end != sequence.len() - 1 {
                     match file.write_all(" | ".as_bytes()) {
-                        Err(why) => panic!("couldn't write SEQUENCE to {}: {}", path.display(), why),
+                        Err(why) => panic!("couldn't write | to {}: {}", path.display(), why),
                         Ok(_) => {},
                     }
                 }  

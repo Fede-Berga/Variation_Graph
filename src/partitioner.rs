@@ -9,17 +9,24 @@ pub struct Cell {
 }
 
 #[derive(Debug)]
+/// Represents a partitioning of an Alignment
 pub struct Partition(Vec<Interval>);
 
 impl Partition {
+    /// Return an iterator for the intervals in the Partition
     pub fn intervals(&self) -> std::slice::Iter<'_, Interval> {
         self.0.iter()
     }
 }
 
+
 #[derive(Debug, Copy, Clone)]
+/// Represents an interval in the Partition
 pub struct Interval {
+    /// Begin
     pub begin : usize,
+
+    /// End
     pub end : usize,
 }
 
@@ -31,14 +38,17 @@ impl Interval {
 }
 
 #[derive(Debug)]
+/// Errors in the partitioning
 pub enum PartitionerError {
     InvalidThreshold
 }
 
+/// Trait for implementing a partitioner
 pub trait Partitioner {
     fn new(alignment : &Alignment, threshold : usize) -> Result<Partition, PartitionerError>;
 }
 
+/// Builds a partition using Dynamic Programming
 pub struct DynProgPartitioner;
 
 impl Partitioner for DynProgPartitioner {
@@ -128,6 +138,7 @@ impl DynProgPartitioner {
     }
 }
 
+/// Builds a partition using a greedy method
 pub struct GreedyPartitioner;
 
 impl Partitioner for GreedyPartitioner {
